@@ -7,15 +7,11 @@
 #include <format>
 #include <iostream>
 #include <print>
-#include <Zut/RxJson.h>
 
 using namespace Zqf;
 
 auto main() -> int
 {
-
-
-
     //for (Zut::ZxFs::Walk walk("D:/VM/WindowsXP_JP/"); walk.NextFile();)
     //{
     //    if (!walk.IsSuffix(".scoreboard")) { continue; }
@@ -34,13 +30,15 @@ auto main() -> int
         for (size_t i = 0; i < 1; i++)
         {
             record.Beg();
-            Zut::ZxJson::JDoc doc("1.json");
-            auto& jv = doc.Get().ToObj();
+            Zut::ZxJson::JDoc doc;
+            auto& jv = doc.GetJObject();
             Zut::ZxJson::JArray_t jarr;
             jarr.push_back("123");
             jarr.push_back(123);
             jarr.push_back(31.313);
             jv["hash"] = std::move(jarr);
+            auto& arrx = jv["hash"].Get<Zut::ZxJson::JArray_t>();
+            arrx.push_back(31.31);
             doc.Save("33.json", true, false);
             record.End();
         }

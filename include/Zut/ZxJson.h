@@ -64,7 +64,7 @@ class JValue
         }
         else
         {
-            throw std::runtime_error(std::format("ZxJson::JValue: error type {}", typeid(T_decay).name()));
+            throw std::runtime_error(std::format("ZxJson::JValue<>: error type {}", typeid(T_decay).name()));
         }
     }
 
@@ -140,64 +140,59 @@ class JValue
     };
 
     template <class T>
-    auto Get() -> T
+    auto Get() -> T&
     {
         if constexpr (std::is_same_v<T, JNull_t>)
         {
+            assert(std::holds_alternative<JNull_t>(m_Data));
             return JNull_t{};
         }
         else if constexpr (std::is_same_v<T, JBool_t>)
         {
-            return std::get<JBool_t>(this->m_Data);
+            assert(std::holds_alternative<JBool_t>(m_Data));
+            return std::get<JBool_t>(m_Data);
         }
         else if constexpr (std::is_integral_v<T>)
         {
-            return static_cast<T>(std::get<JInt_t>(this->m_Data));
+            assert(std::holds_alternative<JInt_t>(m_Data));
+            return static_cast<T>(std::get<JInt_t>(m_Data));
         }
         else if constexpr (std::is_same_v<T, JFloat_t> || std::is_same_v<T, JDouble_t>)
         {
-            return static_cast<T>(std::get<JDouble_t>(this->m_Data));
+            assert(std::holds_alternative<JDouble_t>(m_Data));
+            return static_cast<T>(std::get<JDouble_t>(m_Data));
         }
         else if constexpr (std::is_same_v<T, JString_View_t>)
         {
-            return *std::get<std::unique_ptr<JString_t>>(this->m_Data);
+            assert(std::holds_alternative<JString_t>(m_Data));
+            return *std::get<std::unique_ptr<JString_t>>(m_Data);
         }
-        else if constexpr (std::is_same_v<T, JString_t> || std::is_same_v<T, JString_t&> || std::is_same_v<T, JArray_t> || std::is_same_v<T, JArray_t&> || std::is_same_v<T, JObject_t> || std::is_same_v<T, JObject_t&>)
+        else if constexpr (std::is_same_v<T, JString_t>  || std::is_same_v<T, JArray_t> || std::is_same_v<T, JObject_t>)
         {
-            return *std::get<std::unique_ptr<std::remove_cvref_t<T>>>(this->m_Data);
+            assert(std::holds_alternative<std::unique_ptr<std::remove_cvref_t<T>>>(m_Data));
+            return *std::get<std::unique_ptr<std::remove_cvref_t<T>>>(m_Data);
         }
         else
         {
-            throw std::runtime_error("ZxJson::JValue::Get: error get type!");
+            throw std::runtime_error("ZxJson::JValue::Get<>: error get type!");
         }
     }
 
-    auto ToAry() -> JArray_t&
+    template <class T>
+    auto Sure() -> T&
     {
-        if (std::holds_alternative<JNull_t>(this->m_Data))
+        static_assert((std::is_same_v<T, JString_t> || std::is_same_v<T, JArray_t> || std::is_same_v<T, JObject_t>), "ZxJson::JValue::Sure<>: error type");
+
+        if (std::holds_alternative<JNull_t>(m_Data))
         {
-            this->m_Data = std::make_unique<JArray_t>();
+            m_Data = std::make_unique_for_overwrite<T>();
         }
-        else if (!std::holds_alternative<std::unique_ptr<JArray_t>>(this->m_Data))
+        else if (!std::holds_alternative<std::unique_ptr<T>>(m_Data))
         {
-            throw std::runtime_error("ZxJson::JValue::ToAry: error!");
+            throw std::runtime_error("ZxJson::JValue::Sure<>: error!");
         }
 
-        return *std::get<std::unique_ptr<JArray_t>>(this->m_Data);
-    }
-
-    auto ToObj() -> JObject_t&
-    {
-        if (std::holds_alternative<JNull_t>(this->m_Data))
-        {
-            this->m_Data = std::make_unique<JObject_t>();
-        }
-        else if (!std::holds_alternative<std::unique_ptr<JObject_t>>(this->m_Data))
-        {
-            throw std::runtime_error("ZxJson::JValue::ToObj: error!");
-        }
-
-        return *std::get<std::unique_ptr<JObject_t>>(this->m_Data);
+        return *std::get<std::unique_ptr<T>>(m_Data);
     }
 
     auto Dump(std::string& wsText, bool isFormat, bool isOrder, size_t nIndent) const -> void;
@@ -263,9 +258,19 @@ class JDoc
 
     };
 
-    auto Get() -> JValue&
+    auto GetJValue() -> JValue&
     {
         return m_JValue;
+    }
+
+    auto GetJArray() -> JArray_t&
+    {
+        return m_JValue.Sure<JArray_t>();
+    }
+
+    auto GetJObject() -> JObject_t&
+    {
+        return m_JValue.Sure<JObject_t>();
     }
 
     auto Load(const std::string_view msPath) -> bool

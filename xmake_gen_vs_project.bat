@@ -1,1 +1,1 @@
-xmake project -k vsxmake
+xmake project -k vsxmake -y

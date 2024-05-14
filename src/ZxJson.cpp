@@ -240,7 +240,7 @@ void JParser::ParseArray(JValue& rfJValue)
 {
     assert(this->GetCurChar() == '[');
 
-    JArray_t& jarry = rfJValue.ToAry();
+    auto& jarry = rfJValue.Sure<JArray_t>();
     this->AddReadCCH();
 
     while (this->GetToken() != ']')
@@ -258,7 +258,7 @@ void JParser::ParseObject(JValue& rfJValue)
 {
     assert(this->GetCurChar() == '{');
 
-    JObject_t& obj = rfJValue.ToObj();
+    auto& obj = rfJValue.Sure<JObject_t>();
     this->AddReadCCH();
 
     std::string_view key;
