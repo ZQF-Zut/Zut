@@ -12,45 +12,21 @@ using namespace Zqf;
 
 auto main() -> int
 {
-    //for (Zut::ZxFs::Walk walk("D:/VM/WindowsXP_JP/"); walk.NextFile();)
-    //{
-    //    if (!walk.IsSuffix(".scoreboard")) { continue; }
-    //    std::println("路径: {}", walk.GetPath());
-    //    std::println("名称: {}", walk.GetName());
-    //}
-
-    //std::println("file_name: {}", Zut::ZxFs::FileName("D:/VM/WindowsXP_JP/1.jpg"));
-
     try
     {
-        //Zut::ZxSys::InitConsoleEncoding();
-
         Rut::RxBench::Record record;
-        
-        for (size_t i = 0; i < 1; i++)
+        Zut::ZxMem jmem("C:/Users/Hex/Downloads/ejson4cpp-master/tests/json/test.json");
+        for (size_t i = 0; i < 200; i++)
         {
             record.Beg();
-            Zut::ZxJson::JDoc doc;
-            auto& jv = doc.GetJObject();
-            Zut::ZxJson::JArray_t jarr;
-            jarr.push_back("123");
-            jarr.push_back(123);
-            jarr.push_back(31.313);
-            jv["hash"] = std::move(jarr);
-            auto& arrx = jv["hash"].Get<Zut::ZxJson::JArray_t>();
-            arrx.push_back(31.31);
-            doc.Save("33.json", true, false);
+            Zut::ZxJson::JValue jv;
+            Zut::ZxJson::JParser{ { jmem.Ptr<char*>(), jmem.Size<size_t>() } }.Parse(jv);
             record.End();
         }
         
         record.Log();
-
-        
-        //std::println("当前程序目录：{}", Zut::ZxFs::SelfDir().first);
-        //std::println("当前程序路径：{}", Zut::ZxFs::SelfPath().first);
-        //Zut::ZxFs::MakeDirs("这是/我的/一个/个人/路径/123.jpg/");
     }
-    catch (const std::runtime_error& err)
+    catch (const std::exception& err)
     {
         std::println(std::cerr, "std::exception: {}", err.what());
     }

@@ -98,7 +98,7 @@ auto Read(SysID hFile, const std::span<uint8_t> spBuffer) -> std::optional<size_
     return Wx32::API::ReadFile(hFile, spBuffer, nullptr);
 }
 
-auto Write(SysID hFile, const std::span<uint8_t> spBuffer) -> std::optional<size_t>
+auto Write(SysID hFile, const std::span<const uint8_t> spBuffer) -> std::optional<size_t>
 {
     return Wx32::API::WriteFile(hFile, spBuffer, nullptr);
 }
