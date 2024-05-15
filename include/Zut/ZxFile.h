@@ -13,9 +13,7 @@ class ZxFile
   public:
     ZxFile(const std::string_view msPath, const OpenMod eMode)
     {
-        auto file_id_opt = Zut::ZxNative::File::Open(msPath, eMode);
-
-        if (file_id_opt.has_value())
+        if (const auto file_id_opt = Zut::ZxNative::File::Open(msPath, eMode))
         {
             m_hFile = *file_id_opt;
             return;
@@ -48,7 +46,7 @@ class ZxFile
     template <class T, size_t S>
     auto Write(const std::span<T, S> spBuffer) -> std::optional<size_t>
     {
-        return Zut::ZxNative::File::Write(m_hFile, { reinterpret_cast<uint8_t*>(spBuffer.data()), spBuffer.size_bytes() });
+        return Zut::ZxNative::File::Write(m_hFile, { reinterpret_cast<const uint8_t*>(spBuffer.data()), spBuffer.size_bytes() });
     }
 
     auto SetPtr(const uint64_t nOffset, const MoveWay eWay) -> std::optional<uint64_t>

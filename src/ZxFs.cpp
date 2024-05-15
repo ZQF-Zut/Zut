@@ -13,11 +13,10 @@ Walk::Walk(const std::string_view msWalkDir)
     m_aSearchDir[msWalkDir.size() + 0] = '*';
     m_aSearchDir[msWalkDir.size() + 1] = '\0';
     m_msSearchDir = { m_aSearchDir, msWalkDir.size() + 1 };
+    
+    if (auto hfind_opt = ZxNative::Fs::WalkCreate(m_msSearchDir)) { m_hFind = *hfind_opt; }
 
-    auto hfind_opt = ZxNative::Fs::WalkCreate(m_msSearchDir);
-    if (!hfind_opt.has_value()) { throw std::runtime_error(std::format("ZxPath::Walk: find dir {} first file error! ", m_msSearchDir)); }
-
-    m_hFind = *hfind_opt;
+    throw std::runtime_error(std::format("ZxPath::Walk: find dir {} first file error! ", m_msSearchDir));
 }
 
 Walk::~Walk()
@@ -40,8 +39,7 @@ auto Walk::GetName() const -> std::string_view
 
 auto Walk::NextDir() -> bool
 {
-    auto opt_dir = ZxNative::Fs::WalkNextDir(m_hFind, m_aFindBuffer);
-    if (opt_dir.has_value())
+    if (const auto opt_dir = ZxNative::Fs::WalkNextDir(m_hFind, m_aFindBuffer))
     {
         m_msFindName = *opt_dir;
         return true;
@@ -51,8 +49,7 @@ auto Walk::NextDir() -> bool
 
 auto Walk::NextFile() -> bool
 {
-    auto opt_file = ZxNative::Fs::WalkNextFile(m_hFind, m_aFindBuffer);
-    if (opt_file.has_value())
+    if (const auto opt_file = ZxNative::Fs::WalkNextFile(m_hFind, m_aFindBuffer))
     {
         m_msFindName = *opt_file;
         return true;
