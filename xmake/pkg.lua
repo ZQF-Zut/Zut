@@ -1,10 +1,10 @@
---[[
+
 set_policy("package.install_locally", true)
 package("wx32")
     set_homepage("https://github.com/Dir-A/Wx32/")
     set_description("a win32 api wrapper using utf-8 and modern c++")
     -- add_urls("https://github.com/Dir-A/Wx32.git")
-    set_sourcedir("D:/Space/Code/Git/Wx32")
+    set_sourcedir("D:/Space/Code/Zqf/Zcode/Wx32")
 
     -- add_versions("v1.0", "e768c82b22c435ff2140454fcf0b13c01a717515")
 
@@ -32,10 +32,9 @@ package("wx32")
         -- 
     end)
 package_end()
---]]
 
 -- repo
-add_repositories("Drepo https://github.com/Dir-A/Drepo.git")
+-- add_repositories("Drepo https://github.com/Dir-A/Drepo.git")
 
 -- packages
 add_requires("wx32")

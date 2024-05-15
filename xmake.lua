@@ -10,11 +10,11 @@ set_encodings("utf-8")
 -- allows
 set_allowedplats("windows")
 set_allowedarchs("x86", "x64")
-set_allowedmodes("debug", "release")
+set_allowedmodes("debug", "release", "releasedbg")
 
 -- rules
 add_rules("plugin.vsxmake.autoupdate")
-add_rules("mode.debug", "mode.release")
+add_rules("mode.debug", "mode.release", "mode.releasedbg")
 
 -- defines
 if is_plat("windows")then
