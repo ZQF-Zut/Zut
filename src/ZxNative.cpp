@@ -65,7 +65,7 @@ auto Open(const std::string_view msPath, OpenMod eMode) -> std::optional<SysID>
         break;
     }
 
-    return Wx32::API::CreateFileU8(msPath, access, FILE_SHARE_READ, nullptr, attributes, FILE_ATTRIBUTE_NORMAL, nullptr);
+    return Wx32::API::CreateFileU8(msPath, { attributes, access, FILE_SHARE_READ });
 }
 
 auto Close(SysID hFile) -> bool
@@ -85,12 +85,12 @@ auto GetSize(SysID hFile) -> std::optional<uint64_t>
 
 auto GetPtr(SysID hFile) -> std::optional<uint64_t>
 {
-    return Wx32::API::SetFilePointerEx(hFile, 0, static_cast<size_t>(MoveWay::Cur));
+    return Wx32::API::SetFilePointerEx(hFile, 0, Wx32::MoveWayEnum::Cur);
 }
 
 auto SetPtr(SysID hFile, uint64_t nOffset, MoveWay eWay) -> std::optional<uint64_t>
 {
-    return Wx32::API::SetFilePointerEx(hFile, nOffset, static_cast<size_t>(eWay));
+    return Wx32::API::SetFilePointerEx(hFile, nOffset, eWay);
 }
 
 auto Read(SysID hFile, const std::span<uint8_t> spBuffer) -> std::optional<size_t>
