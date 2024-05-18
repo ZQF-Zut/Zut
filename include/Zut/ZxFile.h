@@ -8,7 +8,7 @@ namespace Zqf::Zut
 class ZxFile
 {
   private:
-    SysID m_hFile{};
+      SysID m_hFile{};
 
   public:
     ZxFile(const std::string_view msPath, const OpenMod eMode)
@@ -19,7 +19,7 @@ class ZxFile
             return;
         }
 
-        throw std::runtime_error(std::format("DxFile: open {} failed!", msPath));
+        throw std::runtime_error(std::format("ZxFile: open file failed! -> msPath: {}", msPath));
     }
 
     ~ZxFile()
