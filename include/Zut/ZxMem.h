@@ -7,181 +7,190 @@
 
 namespace Zqf::Zut
 {
-constexpr size_t AUTO_MEM_AUTO_SIZE = -1;
+	constexpr size_t AUTO_MEM_AUTO_SIZE = -1;
 
-class ZxMem
-{
-  private:
-    size_t m_uiMaxSize{};
-    size_t m_uiMemSize{};
-    std::unique_ptr<uint8_t[]> m_upMemData;
+	class ZxMem
+	{
+	private:
+		size_t m_uiMaxSize{};
+		size_t m_uiMemSize{};
+		std::unique_ptr<uint8_t[]> m_upMemData;
 
-  public:
-    ZxMem() {}
-    ~ZxMem() {}
+	public:
+		ZxMem() {}
+		~ZxMem() {}
 
-    ZxMem(size_t nSize)
-    {
-        this->Resize(nSize, false);
-    }
+		ZxMem(size_t nSize)
+		{
+			this->Resize(nSize, false);
+		}
 
-    ZxMem(const std::string_view msPath, size_t nLoadSize = AUTO_MEM_AUTO_SIZE)
-    {
-        this->LoadData(msPath, nLoadSize);
-    }
+		ZxMem(const std::string_view msPath, size_t nLoadSize = AUTO_MEM_AUTO_SIZE)
+		{
+			this->LoadData(msPath, nLoadSize);
+		}
 
-    ZxMem(const ZxMem& buffer)
-    {
-        this->Copy(buffer);
-    }
+		ZxMem(const ZxMem& rfOBJ)
+		{
+			this->operator=(rfOBJ);
+		}
 
-    ZxMem(ZxMem&& buffer) noexcept
-    {
-        this->Move(std::move(buffer));
-    }
+		ZxMem(ZxMem&& rfOBJ) noexcept
+		{
+			this->operator=(std::move(rfOBJ));
+		}
 
-    ZxMem& operator=(const ZxMem& rfAutoMem)
-    {
-        return this->Copy(rfAutoMem);
-    }
+		ZxMem& operator=(const ZxMem& rfOBJ)
+		{
+			assert(this != &rfOBJ);
 
-    ZxMem& operator=(ZxMem&& rfAutoMem) noexcept
-    {
-        return this->Move(std::move(rfAutoMem));
-    }
+			if (rfOBJ.m_upMemData != nullptr)
+			{
+				this->m_uiMaxSize = rfOBJ.m_uiMaxSize;
+				this->m_uiMemSize = rfOBJ.m_uiMemSize;
+				this->m_upMemData = std::make_unique_for_overwrite<uint8_t[]>(rfOBJ.m_uiMemSize);
+				::memcpy(m_upMemData.get(), rfOBJ.m_upMemData.get(), m_uiMemSize);
+			}
+			else
+			{
+				this->m_uiMaxSize = 0;
+				this->m_uiMemSize = 0;
+			}
 
-    ZxMem& operator+(const ZxMem& rfAutoMem)
-    {
-        return this->Append(rfAutoMem);
-        ;
-    }
+			return *this;
+		}
 
-    ZxMem& Copy(const ZxMem& rfObj)
-    {
-        assert(this != &rfObj);
+		ZxMem& operator=(ZxMem&& rfOBJ) noexcept
+		{
+			assert(this != &rfOBJ);
 
-        if (rfObj.m_upMemData != nullptr)
-        {
-            this->m_uiMaxSize = rfObj.m_uiMaxSize;
-            this->m_uiMemSize = rfObj.m_uiMemSize;
-            this->m_upMemData = std::make_unique_for_overwrite<uint8_t[]>(rfObj.m_uiMemSize);
-            ::memcpy(m_upMemData.get(), rfObj.m_upMemData.get(), m_uiMemSize);
-        }
-        else
-        {
-            this->m_uiMaxSize = 0;
-            this->m_uiMemSize = 0;
-        }
+			m_upMemData = std::move(rfOBJ.m_upMemData);
 
-        return *this;
-    }
+			m_uiMemSize = rfOBJ.m_uiMemSize;
+			m_uiMaxSize = rfOBJ.m_uiMaxSize;
 
-    ZxMem& Move(ZxMem&& buffer) noexcept
-    {
-        assert(this != &buffer);
+			rfOBJ.m_uiMemSize = 0;
+			rfOBJ.m_uiMaxSize = 0;
 
-        m_upMemData = std::move(buffer.m_upMemData);
+			return *this;
+		}
 
-        m_uiMemSize = buffer.m_uiMemSize;
-        m_uiMaxSize = buffer.m_uiMaxSize;
+		ZxMem& operator+(const ZxMem& rfOBJ)
+		{
+			size_t cur_size = this->Size();
+			size_t append_size = rfOBJ.Size();
 
-        buffer.m_uiMemSize = 0;
-        buffer.m_uiMaxSize = 0;
+			if (append_size)
+			{
+				this->Resize(cur_size + append_size, true);
+				::memcpy(this->Ptr() + cur_size, rfOBJ.Ptr(), append_size);
+			}
 
-        return *this;
-    }
+			return *this;
+		}
 
-    ZxMem& Append(const ZxMem& rfMem)
-    {
-        size_t cur_size = this->Size();
-        size_t append_size = rfMem.Size();
+		ZxMem& Resize(size_t uiNewSize, bool isCopy = false)
+		{
+			if (m_uiMemSize == 0)
+			{
+				m_upMemData = std::make_unique_for_overwrite<uint8_t[]>(uiNewSize);
+				m_uiMaxSize = uiNewSize;
+			}
+			else if (uiNewSize > m_uiMaxSize)
+			{
+				std::unique_ptr<uint8_t[]> tmp = std::make_unique_for_overwrite<uint8_t[]>(uiNewSize);
+				if (isCopy) { ::memcpy(tmp.get(), m_upMemData.get(), m_uiMemSize); }
+				m_upMemData = std::move(tmp);
+				m_uiMaxSize = uiNewSize;
+			}
 
-        if (append_size)
-        {
-            this->Resize(cur_size + append_size, true);
-            ::memcpy(this->Ptr() + cur_size, rfMem.Ptr(), append_size);
-        }
+			m_uiMemSize = uiNewSize;
 
-        return *this;
-    }
+			return *this;
+		}
 
-    ZxMem& Resize(size_t uiNewSize, bool isCopy = false)
-    {
-        if (m_uiMemSize == 0)
-        {
-            m_upMemData = std::make_unique_for_overwrite<uint8_t[]>(uiNewSize);
-            m_uiMaxSize = uiNewSize;
-        }
-        else if (uiNewSize > m_uiMaxSize)
-        {
-            std::unique_ptr<uint8_t[]> tmp = std::make_unique_for_overwrite<uint8_t[]>(uiNewSize);
-            if (isCopy) { ::memcpy(tmp.get(), m_upMemData.get(), m_uiMemSize); }
-            m_upMemData = std::move(tmp);
-            m_uiMaxSize = uiNewSize;
-        }
+		uint8_t* begin() const noexcept
+		{
+			return this->Ptr();
+		}
 
-        m_uiMemSize = uiNewSize;
+		uint8_t* end() const noexcept
+		{
+			return this->Ptr() + this->Size();
+		}
 
-        return *this;
-    }
+		uint8_t operator[](size_t nIndex) noexcept
+		{
+			assert(nIndex < m_uiMemSize);
+			return this->Ptr()[nIndex];
+		}
 
-    uint8_t* begin() const noexcept
-    {
-        return this->Ptr();
-    }
+	public:
+		template <class T = uint8_t*>
+		auto Ptr() const noexcept -> T
+		{
+			if constexpr (std::is_pointer_v<T>)
+			{
+				return reinterpret_cast<T>(m_upMemData.get());
+			}
+			else
+			{
+				static_assert(true, "ZxMem::Ptr: not pointer type!");
+			}
+		}
 
-    uint8_t* end() const noexcept
-    {
-        return this->Ptr() + this->Size();
-    }
+		template <class T = size_t>
+		auto Size() const noexcept -> T
+		{
+			if constexpr (std::is_integral_v<T>)
+			{
+				return static_cast<T>(m_uiMemSize);
+			}
+			else
+			{
+				static_assert(true, "ZxMem::Size: not integral type!");
+			}
+		}
 
-    uint8_t operator[](size_t nIndex) noexcept
-    {
-        assert(nIndex < m_uiMemSize);
-        return this->Ptr()[nIndex];
-    }
+	public:
+		ZxMem& SaveData(const std::string_view msPath, bool isForceSave)
+		{
+			ZxFile::SaveDataViaPath(msPath, std::span{ *this }, isForceSave);
+			return *this;
+		}
 
-  public:
-    template <class T = uint8_t*>
-    auto Ptr() const noexcept -> T
-    {
-        if constexpr (std::is_pointer_v<T>)
-        {
-            return reinterpret_cast<T>(m_upMemData.get());
-        }
-        else
-        {
-            static_assert(true, "DxMem::Ptr: not pointer type!");
-        }
-    }
+		ZxMem& LoadData(const std::string_view msPath, size_t nSize = AUTO_MEM_AUTO_SIZE)
+		{
+			ZxFile ifs{ msPath, OpenMod::ReadSafe };
 
-    template <class T = size_t>
-    auto Size() const noexcept -> T
-    {
-        if constexpr (std::is_integral_v<T>)
-        {
-            return static_cast<T>(m_uiMemSize);
-        }
-        else
-        {
-            static_assert(true, "DxMem::Size: not integral type!");
-        }
-    }
+			size_t read_size{};
+			if (const auto file_size_opt = ifs.GetSize())
+			{
+				const auto file_size = *file_size_opt;
+				if (nSize == AUTO_MEM_AUTO_SIZE)
+				{
+					read_size = static_cast<size_t>(file_size);
+				}
+				else
+				{
+					if (nSize <= file_size)
+					{
+						read_size = nSize;
+					}
+					else
+					{
+						throw std::runtime_error(std::format("ZxMem::LoadData: read size larger than file size!, msPath: {}", msPath));
+					}
+				}
+			}
+			else
+			{
+				throw std::runtime_error(std::format("ZxMem::LoadData: get file size error!, msPath: {}", msPath));
+			}
 
-  public:
-    ZxMem& SaveData(const std::string_view msPath, bool isForceSave)
-    {
-        ZxFile::SaveDataViaPath(msPath, std::span{ *this }, isForceSave);
-        return *this;
-    }
-
-    ZxMem& LoadData(const std::string_view msPath, size_t nSize = AUTO_MEM_AUTO_SIZE)
-    {
-        ZxFile ifs{ msPath, OpenMod::ReadSafe };
-        size_t read_size = AUTO_MEM_AUTO_SIZE ? static_cast<size_t>(ifs.GetSize().value()) : nSize;
-        ifs.Read(std::span{ this->Resize(read_size).Ptr(), this->Size() });
-        return *this;
-    }
-};
+			ifs.Read(std::span{ this->Resize(read_size).Ptr(), this->Size() });
+			return *this;
+		}
+	};
 
 } // namespace Dut
