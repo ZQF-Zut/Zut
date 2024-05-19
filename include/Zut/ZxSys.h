@@ -4,5 +4,5 @@
 
 namespace Zqf::Zut::ZxSys
 {
-using namespace Zut::ZxNative::Sys;
+	using namespace Zut::ZxNative::Sys;
 }

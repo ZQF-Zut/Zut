@@ -27,4 +27,4 @@ namespace Zqf::Zut
 
 		std::println("Avg:{}", cout / m_vcRecord.size());
 	}
-} // namespace Rut::RxBench
+}

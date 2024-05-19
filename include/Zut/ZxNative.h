@@ -8,6 +8,7 @@ namespace Zqf::Zut::ZxNative::Sys
 	auto InitConsoleEncoding() -> void;
 }
 
+
 namespace Zqf::Zut::ZxNative::Str
 {
 	// cvt multibyte-string to wide-string without warning log
@@ -55,7 +56,7 @@ namespace Zqf::Zut::ZxNative::File
 
 	// write data to file
 	auto Write(SysID hFile, const std::span<const uint8_t> spBuffer) -> std::optional<size_t>;
-} // namespace Dut::Native::File
+}
 
 
 namespace Zqf::Zut::ZxNative::Fs

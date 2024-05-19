@@ -1,9 +1,9 @@
 #include <Zut/ZxJson.h>
 #include <Zut/ZxFile.h>
-
-#include <cassert>
 #include <map>
+#include <cassert>
 #include <stdexcept>
+
 
 namespace Zqf::Zut::ZxJson
 {
@@ -126,7 +126,8 @@ namespace Zqf::Zut::ZxJson
 		}
 	}
 
-} // namespace Zqf::Zut::ZxJson
+}
+
 
 namespace Zqf::Zut::ZxJson
 {
@@ -147,7 +148,7 @@ namespace Zqf::Zut::ZxJson
 			rfJValue = JNull_t{};
 			return true;
 		}
-		
+
 		this->ParseValue(rfJValue);
 		return this->GetReadBytes() == this->TotalBytes();
 	}
@@ -408,4 +409,4 @@ namespace Zqf::Zut::ZxJson
 	}
 
 
-} // namespace Zqf::Zut::ZxJson
+}

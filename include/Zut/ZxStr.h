@@ -4,5 +4,5 @@
 
 namespace Zqf::Zut::ZxStr
 {
-using namespace Zut::ZxNative::Str;
+	using namespace Zut::ZxNative::Str;
 }

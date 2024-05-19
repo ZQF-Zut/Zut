@@ -10,25 +10,26 @@
 
 using namespace Zqf;
 
+
 auto main() -> int
 {
-    Zut::ZxNative::Sys::InitConsoleEncoding();
-    try
-    {
-        Zut::ZxRecord record;
-        Zut::ZxMem jmem("C:/Users/Hex/Downloads/ejson4cpp-master/tests/json/test.json");
-        for (size_t i = 0; i < 200; i++)
-        {
-            record.Beg();
-            Zut::ZxJson::JValue jv;
-            Zut::ZxJson::JParser{ { jmem.Ptr<char*>(), jmem.Size<size_t>() } }.Parse(jv);
-            record.End();
-        }
-        
-        record.Log();
-    }
-    catch (const std::exception& err)
-    {
-        std::println(std::cerr, "std::exception: {}", err.what());
-    }
+	Zut::ZxNative::Sys::InitConsoleEncoding();
+	try
+	{
+		Zut::ZxRecord record;
+		Zut::ZxMem jmem("1.json");
+		for (size_t i = 0; i < 200; i++)
+		{
+			record.Beg();
+			Zut::ZxJson::JValue jv;
+			Zut::ZxJson::JParser{ { jmem.Ptr<char*>(), jmem.Size<size_t>() } }.Parse(jv);
+			record.End();
+		}
+
+		record.Log();
+	}
+	catch (const std::exception& err)
+	{
+		std::println(std::cerr, "std::exception: {}", err.what());
+	}
 }

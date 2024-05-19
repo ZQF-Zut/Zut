@@ -16,9 +16,10 @@ namespace Zqf::Zut
 	using MbcsStr_t = Wx32::MbcsStr_t;
 	using WideStr_t = Wx32::WideStr_t;
 	using WalkData_t = WIN32_FIND_DATAW;
-} // namespace Zqf::Zut
+}
 
 #endif // ZUT_WIN32
+
 
 namespace Zqf::Zut
 {
@@ -28,4 +29,4 @@ namespace Zqf::Zut
 		WriteSafe,
 		WriteForce
 	};
-} // namespace Zqf::Zut
+}

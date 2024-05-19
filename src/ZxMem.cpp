@@ -1,7 +1,7 @@
 #include <Zut/ZxMem.h>
 
 
-namespace Zut
+namespace Zqf::Zut
 {
 
 }

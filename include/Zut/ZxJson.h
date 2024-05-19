@@ -266,7 +266,8 @@ namespace Zqf::Zut::ZxJson
 		}
 	}
 
-} // namespace Zqf::Zut::ZxJson
+}
+
 
 namespace Zqf::Zut::ZxJson
 {
@@ -308,7 +309,8 @@ namespace Zqf::Zut::ZxJson
 		auto ParseNull(JValue& rfJValue) -> void;
 		auto ParseValue(JValue& rfJValue) -> void;
 	};
-} // namespace Zqf::Zut::ZxJson
+}
+
 
 namespace Zqf::Zut::ZxJson
 {
@@ -359,4 +361,4 @@ namespace Zqf::Zut::ZxJson
 			ZxFile::SaveDataViaPath(msPath, std::span{ text }, true);
 		}
 	};
-} // namespace Zqf::Zut::ZxJson
+}
