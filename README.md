@@ -14,7 +14,7 @@ personal cpp utility library
 - ZxStr
   - string related
 - ZxFS
-  - filesystem
+  - wrapper platform filesystem
 - ZxFile
   - binary file io
 - ZxMem
