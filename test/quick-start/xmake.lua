@@ -1,3 +1,4 @@
+add_rules("plugin.vsxmake.autoupdate")
 add_rules("mode.debug", "mode.release")
 add_repositories("Drepo https://github.com/Dir-A/Drepo.git")
 
