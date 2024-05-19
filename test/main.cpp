@@ -12,9 +12,10 @@ using namespace Zqf;
 
 auto main() -> int
 {
+    Zut::ZxNative::Sys::InitConsoleEncoding();
     try
     {
-        Rut::RxBench::Record record;
+        Zut::ZxRecord record;
         Zut::ZxMem jmem("C:/Users/Hex/Downloads/ejson4cpp-master/tests/json/test.json");
         for (size_t i = 0; i < 200; i++)
         {

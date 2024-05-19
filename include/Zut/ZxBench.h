@@ -2,9 +2,9 @@
 #include <chrono>
 
 
-namespace Rut::RxBench
+namespace Zqf::Zut
 {
-	class Record
+	class ZxRecord
 	{
 	private:
 		std::chrono::steady_clock::time_point m_tpBeg;
@@ -12,8 +12,8 @@ namespace Rut::RxBench
 		std::vector<std::chrono::duration<double, std::milli>> m_vcRecord;
 
 	public:
-		void Beg();
-		void End();
-		void Log();
+		auto Beg() -> void;
+		auto End() -> void;
+		auto Log() -> void;
 	};
 }
