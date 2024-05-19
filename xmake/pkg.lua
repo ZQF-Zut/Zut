@@ -1,4 +1,4 @@
-
+--[[
 set_policy("package.install_locally", true)
 package("wx32")
     set_homepage("https://github.com/Dir-A/Wx32/")
@@ -32,9 +32,10 @@ package("wx32")
         -- 
     end)
 package_end()
+--]]
 
 -- repo
--- add_repositories("Drepo https://github.com/Dir-A/Drepo.git")
+add_repositories("Drepo https://github.com/Dir-A/Drepo.git")
 
 -- packages
 add_requires("wx32")

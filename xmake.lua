@@ -16,6 +16,9 @@ set_allowedmodes("debug", "release", "releasedbg")
 add_rules("plugin.vsxmake.autoupdate")
 add_rules("mode.debug", "mode.release", "mode.releasedbg")
 
+-- pkg
+includes("xmake/pkg.lua")
+
 -- defines
 if is_plat("windows")then
     add_defines("ZUT_WIN32")
@@ -25,13 +28,8 @@ end
 
 -- lto
 if is_mode("releasedbg") or is_mode("release") then
-    if is_plat("windows") then
-        set_policy("build.optimization.lto", true)
-    end
+    set_policy("build.optimization.lto", true)
 end
-
--- pkg
-includes("xmake/pkg.lua")
 
 -- targets
 target("zut")
