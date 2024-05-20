@@ -131,7 +131,7 @@ namespace Zqf::Zut::ZxJson
 
 namespace Zqf::Zut::ZxJson
 {
-	JParser::JParser(std::span<char> spJson)
+	JParser::JParser(std::span<const char> spJson)
 	{
 		m_spJson = spJson;
 	}
@@ -206,7 +206,7 @@ namespace Zqf::Zut::ZxJson
 			this->AddReadBytes();
 			return this->NextToken();
 		default:
-			throw std::runtime_error("Zut::RxJson::JParser::GetToken(): Not Find Token");
+			throw std::runtime_error("ZxJson::JParser::NextToken(): not find token");
 		}
 	}
 
@@ -265,9 +265,14 @@ namespace Zqf::Zut::ZxJson
 				JValue value;
 				this->ParseValue(value);
 
-				const auto [ite, is_insert_key] = obj.try_emplace({ key.data(), key.size() });
-				if (!is_insert_key) { throw std::runtime_error("ZxJson::JParser::ParseObject: same key!"); }
-				ite->second = std::move(value);
+				if (const auto [ite, is_insert_key] = obj.try_emplace({ key.data(), key.size() }); !is_insert_key)
+				{
+					throw std::runtime_error("ZxJson::JParser::ParseObject: same key!");
+				}
+				else
+				{
+					ite->second = std::move(value);
+				}
 			}
 			break;
 
@@ -278,9 +283,7 @@ namespace Zqf::Zut::ZxJson
 			}
 			break;
 
-			default: {
-				throw std::runtime_error("ZxJson::JParser::ParseObject: error!");
-			}
+			default: throw std::runtime_error("ZxJson::JParser::ParseObject: error!");
 			}
 		}
 	}
@@ -289,82 +292,139 @@ namespace Zqf::Zut::ZxJson
 	{
 		char* end = nullptr;
 		const char* beg = this->CurPtr();
-		double num_org = ::strtod(beg, &end);
+		const double num_org = ::strtod(beg, &end);
 		this->AddReadBytes(end - beg);
 
-		int num_int = (int)(num_org);
+		const int num_int = (int)(num_org);
 		(num_org == (double)(num_int)) ? (rfJValue = num_int) : (rfJValue = num_org);
 	}
 
 	auto JParser::ParseString(JValue& rfJValue) -> void
 	{
-		auto fn_make_unicode = [](const char* msStr) -> uint32_t {
-			auto fn_char2num = [](char cChar) -> uint8_t {
-				if ((uint16_t)cChar >= 0x41) // A-Z
-				{
-					return (uint8_t)(cChar - 0x37);
-				}
-				else // 0-9
-				{
-					return (uint8_t)(cChar - 0x30);
-				}
-				};
+		auto fn_decode_unicode = [this](std::string& rfStr)
+			{
+				auto fn_read_code_point = [this]() -> uint16_t
+					{
+						auto fn_char2num = [](char cChar) -> uint8_t {
+							uint8_t char_v = static_cast<uint8_t>(cChar);
+							if (char_v >= 0x61 && char_v <= 0x7a) { return char_v - 0x57; }// a-z
+							else if (char_v >= 0x41 && char_v <= 0x5A) { return char_v - 0x37; }// A-Z
+							else if (char_v >= 0x30 && char_v <= 0x39) { return char_v - 0x30; }// 0-9
+							else { throw std::runtime_error("ZxJson::JParser::DecodeUnicode:: read code point error!"); }
+							};
 
-			uint8_t hex_0 = fn_char2num(msStr[0]);
-			uint8_t hex_1 = fn_char2num(msStr[1]);
-			uint8_t hex_2 = fn_char2num(msStr[2]);
-			uint8_t hex_3 = fn_char2num(msStr[3]);
+						const char* code_point_str_ptr = this->CurPtr();
+						uint8_t hex_0 = fn_char2num(code_point_str_ptr[0]);
+						uint8_t hex_1 = fn_char2num(code_point_str_ptr[1]);
+						uint8_t hex_2 = fn_char2num(code_point_str_ptr[2]);
+						uint8_t hex_3 = fn_char2num(code_point_str_ptr[3]);
+						uint16_t code_point = (hex_0 << 12) | (hex_1 << 8) | (hex_2 << 4) | (hex_3 << 0);
+						this->AddReadBytes(4);
+						return code_point;
+					};
 
-			return (hex_0 << 12) | (hex_1 << 8) | (hex_2 << 4) | (hex_3 << 0);
+				assert(this->CurToken() == 'u');
+				this->AddReadBytes();
+
+				uint32_t code_point = fn_read_code_point();
+				if (code_point >= 0xD800 && code_point <= 0xDBFF) // check surrogate pair leading range
+				{
+					// check '\u'
+					if (this->CurPtr()[0] == '\\' && this->CurPtr()[1] == 'u')
+					{
+						this->AddReadBytes(2);
+
+					}
+					else
+					{
+						throw std::runtime_error("ZxJson::JParser::DecodeUnicode: surrogate pair trailing error!");
+					}
+
+					// read trailing
+					uint16_t code_point_trailing = fn_read_code_point();
+					if (code_point_trailing >= 0xDC00 && code_point_trailing <= 0xDFFF) // trailing range
+					{
+						code_point = (((code_point - 0xD800) << 10) | (code_point_trailing - 0xDC00)) + 0x10000;
+					}
+					else
+					{
+						throw std::runtime_error("ZxJson::JParser::DecodeUnicode:: surrogate pair trailing range error!");
+					}
+				}
+
+				// encode to utf8
+				if (code_point <= 0x7F)
+				{
+					rfStr.append(1, static_cast<char>(code_point & 0x7F));
+				}
+				else if (code_point <= 0x7FF)
+				{
+					rfStr.append(1, static_cast<char>(0xC0 | ((code_point >> 0x06) & 0xFF)));
+					rfStr.append(1, static_cast<char>(0x80 | (code_point & 0x3F)));
+				}
+				else if (code_point <= 0xFFFF)
+				{
+					rfStr.append(1, static_cast <char>(0xE0 | ((code_point >> 0x0C) & 0xFF)));
+					rfStr.append(1, static_cast <char>(0x80 | ((code_point >> 0x06) & 0x3F)));
+					rfStr.append(1, static_cast <char>(0x80 | (code_point & 0x3F)));
+				}
+				else if (code_point <= 0x10FFFF)
+				{
+					rfStr.append(1, static_cast <char>(0xF0 | ((code_point >> 0x12) & 0xFF)));
+					rfStr.append(1, static_cast <char>(0x80 | ((code_point >> 0x0C) & 0x3F)));
+					rfStr.append(1, static_cast <char>(0x80 | ((code_point >> 0x06) & 0x3F)));
+					rfStr.append(1, static_cast <char>(0x80 | (code_point & 0x3F)));
+				}
+				else
+				{
+					throw std::runtime_error("ZxJson::JParser::DecodeUnicode:: encode utf8 error!");
+				}
 			};
 
 		assert(this->CurToken() == '"');
 		this->AddReadBytes();
 
-		std::string text;
+		std::string str;
 		while (true)
 		{
 			char ch = this->CurToken();
-
-			if (ch == '\\') // control characters
+			this->AddReadBytes();
+			if (ch == '\\')
 			{
-				this->AddReadBytes();
-				char ctrl_char = this->CurToken();
-
-				switch (ctrl_char)
+				switch (this->CurToken())
 				{
-				case '\\': ctrl_char = '\\'; break;
-				case '"': ctrl_char = '\"'; break;
-				case 'b': ctrl_char = '\b'; break;
-				case 'f': ctrl_char = '\f'; break;
-				case 'n': ctrl_char = '\n'; break;
-				case 'r': ctrl_char = '\r'; break;
-				case 't': ctrl_char = '\t'; break;
-				case 'u':
-				{
-					throw std::runtime_error("un imp");
-					//this->AddReadBytes();
-					//ctrl_char = (char)fn_make_unicode(this->CurPtr());
-					//this->AddReadBytes(3);
-				}
-				break;
-
-				default: throw std::runtime_error("Zut::ZxJson::JParser::ParseString(): Unknow Control Characters");
+				case '\\': ch = '\\'; break;
+				case '"': ch = '\"'; break;
+				case 'b': ch = '\b'; break;
+				case 'f': ch = '\f'; break;
+				case 'n': ch = '\n'; break;
+				case 'r': ch = '\r'; break;
+				case 't': ch = '\t'; break;
+				case 'u': ch = 'u'; break;
+				default: throw std::runtime_error("ZxJson::JParser::ParseString: unknown escape character!");
 				}
 
-				ch = ctrl_char;
+				if (ch == 'u')
+				{
+					fn_decode_unicode(str);
+				}
+				else
+				{
+					str.append(1, ch);
+					this->AddReadBytes();
+				}
 			}
 			else if (ch == '"') // end
 			{
-				this->AddReadBytes(); // skip " char
 				break;
 			}
-
-			text.append(1, ch);
-			this->AddReadBytes(); // netx char
+			else
+			{
+				str.append(1, ch);
+			}
 		}
 
-		rfJValue = std::move(text);
+		rfJValue = std::move(str);
 	}
 
 	auto JParser::ParseTrue(JValue& rfJValue) -> void

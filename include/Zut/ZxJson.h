@@ -196,11 +196,6 @@ namespace Zqf::Zut::ZxJson
 		{
 			return m_Data;
 		}
-		else if constexpr (std::is_same_v<T, JNull_t>)
-		{
-			assert(std::holds_alternative<JNull_t>(m_Data));
-			return JNull_t{};
-		}
 		else if constexpr (std::is_same_v<T, JBool_t>)
 		{
 			assert(std::holds_alternative<JBool_t>(m_Data));
@@ -250,9 +245,9 @@ namespace Zqf::Zut::ZxJson
 
 	template<class T> inline auto JValue::Check() -> bool
 	{
-		static_assert((std::is_same_v<T, JNull_t> || std::is_same_v(T, JBool_t) || std::is_same_v<T, JInt_t> || std::is_same_v<T, JDouble_t> || std::is_same_v<T, JString_t> || std::is_same_v<T, JArray_t> || std::is_same_v<T, JObject_t>), "ZxJson::JValue::Check<>: error type");
+		static_assert((std::is_same_v<T, JNull_t> || std::is_same_v<T, JBool_t> || std::is_same_v<T, JInt_t> || std::is_same_v<T, JDouble_t> || std::is_same_v<T, JString_t> || std::is_same_v<T, JArray_t> || std::is_same_v<T, JObject_t>), "ZxJson::JValue::Check<>: error type");
 
-		if constexpr (std::is_same_v<T, JNull_t> || std::is_same_v(T, JBool_t) || std::is_same_v<T, JInt_t> || std::is_same_v<T, JDouble_t>)
+		if constexpr (std::is_same_v<T, JNull_t> || std::is_same_v<T, JBool_t> || std::is_same_v<T, JInt_t> || std::is_same_v<T, JDouble_t>)
 		{
 			return std::holds_alternative<T>(m_Data);
 		}
@@ -262,7 +257,7 @@ namespace Zqf::Zut::ZxJson
 		}
 		else
 		{
-			throw std::runtime_error("ZxJson::JValue::Check<>: error!");
+			throw std::runtime_error("ZxJson::JValue::Check: error!");
 		}
 	}
 
@@ -275,10 +270,10 @@ namespace Zqf::Zut::ZxJson
 	{
 	private:
 		size_t m_nReadBytes{};
-		std::span<char> m_spJson;
+		std::span<const char> m_spJson;
 
 	public:
-		JParser(std::span<char> spJson);
+		JParser(std::span<const char> spJson);
 		~JParser();
 		JParser(const JParser&) = delete;
 		JParser(JParser&&) noexcept = delete;
