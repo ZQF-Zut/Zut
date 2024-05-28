@@ -28,34 +28,34 @@ namespace Zqf::Zut
 			this->Close();
 		}
 
-		auto Flush() -> bool
+		auto Flush() const -> bool
 		{
 			return Zut::ZxNative::File::Flush(m_hFile);
 		}
 
-		auto Close() -> bool
+		auto Close() const -> bool
 		{
 			return Zut::ZxNative::File::Close(m_hFile);
 		}
 
 		template <class T, size_t S>
-		auto Read(const std::span<T, S> spBuffer) -> std::optional<size_t>
+		auto Read(const std::span<T, S> spBuffer) const -> std::optional<size_t>
 		{
 			return Zut::ZxNative::File::Read(m_hFile, { reinterpret_cast<uint8_t*>(spBuffer.data()), spBuffer.size_bytes() });
 		}
 
 		template <class T, size_t S>
-		auto Write(const std::span<T, S> spBuffer) -> std::optional<size_t>
+		auto Write(const std::span<T, S> spBuffer) const -> std::optional<size_t>
 		{
 			return Zut::ZxNative::File::Write(m_hFile, { reinterpret_cast<const uint8_t*>(spBuffer.data()), spBuffer.size_bytes() });
 		}
 
-		auto SetPtr(const uint64_t nOffset, const MoveWay eWay) -> std::optional<uint64_t>
+		auto SetPtr(const uint64_t nOffset, const MoveWay eWay) const -> std::optional<uint64_t>
 		{
 			return Zut::ZxNative::File::SetPtr(m_hFile, nOffset, eWay);
 		}
 
-		auto GetSize() -> std::optional<uint64_t>
+		auto GetSize() const -> std::optional<uint64_t>
 		{
 			return Zut::ZxNative::File::GetSize(m_hFile);
 		}
@@ -63,7 +63,13 @@ namespace Zqf::Zut
 		template <class T, size_t S>
 		static auto SaveDataViaPath(const std::string_view msPath, const std::span<T, S> spData, bool isForceSave) -> void
 		{
-			ZxNative::Fs::MakeDirs(msPath);
+			const auto pos = msPath.rfind('/');
+			if (pos != std::string_view::npos)
+			{
+				std::string_view dir = msPath.substr(0, pos + 1);
+				ZxNative::Fs::MakeDirs(dir);
+			}
+			
 			ZxFile{ msPath, isForceSave ? OpenMod::WriteForce : OpenMod::WriteSafe }.Write(spData);
 		}
 	};

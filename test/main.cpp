@@ -83,9 +83,10 @@ auto main() -> int
 	try
 	{
 		const std::array<uint16_t, 2> ee = { 131,66 };
-		Zut::ZxView::Reader reader = ee.data();
-		auto xx = reader.Get<uint16_t>();
-		JsonBench();
+		Zut::ZxFile::SaveDataViaPath("123/4124/1.txt", std::span{ ee }, true);
+		// Zut::ZxView::Reader reader = ee.data();
+		// auto xx = reader.Get<uint16_t>();
+		//JsonBench();
 
 	}
 	catch (const std::exception& err)
