@@ -4,6 +4,7 @@
 #include <Zut/ZxSys.h>
 #include <Zut/ZxJson.h>
 #include <Zut/ZxBench.h>
+#include <Zut/ZxView.h>
 #include <format>
 #include <iostream>
 #include <print>
@@ -81,6 +82,9 @@ auto main() -> int
 	Zut::ZxNative::Sys::InitConsoleEncoding();
 	try
 	{
+		const std::array<uint16_t, 2> ee = { 131,66 };
+		Zut::ZxView::Reader reader = ee.data();
+		uint16_t xx = reader.Get<uint16_t>();
 		JsonBench();
 
 	}

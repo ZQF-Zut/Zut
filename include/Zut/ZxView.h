@@ -18,7 +18,7 @@ namespace Zqf::Zut::ZxView
 
 		}
 
-		View_Basic(uint8_t* pData) : m_pData{ pData }
+		View_Basic(const void* pData) : m_pData{ reinterpret_cast<uint8_t*>(const_cast<void*>(pData)) }
 		{
 
 		}
@@ -72,7 +72,7 @@ namespace Zqf::Zut::ZxView
 
 		}
 
-		Reader(uint8_t* pData) : View_Basic(pData)
+		Reader(const void* pData) : View_Basic(pData)
 		{
 
 		}
@@ -103,6 +103,14 @@ namespace Zqf::Zut::ZxView
 			}
 
 			return *this;
+		}
+
+		template<class T>
+		T Get()
+		{
+			T tmp;
+			this->Read(std::span{ &tmp,1 });
+			return tmp;
 		}
 	};
 }
