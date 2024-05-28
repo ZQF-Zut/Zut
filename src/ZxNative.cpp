@@ -44,7 +44,7 @@ namespace Zqf::Zut::ZxNative::Str
 		return Wx32::Utils::StrCvtSafe(wsStr, eCodePage);
 	}
 
-	auto CvtSafe(const std::u16string u16Str, const CodePage eCodePage) -> MbcsStr_t
+	auto CvtSafe(const std::u16string_view u16Str, const CodePage eCodePage) -> MbcsStr_t
 	{
 		return CvtSafe({ reinterpret_cast<const wchar_t*>(u16Str.data()), u16Str.size()}, eCodePage);
 	}
