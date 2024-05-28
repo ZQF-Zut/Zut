@@ -40,7 +40,7 @@ namespace Zqf::Zut::ZxView
 		template<class T = uint8_t*>
 		auto CurPtr() const noexcept -> T
 		{
-			return this->Ptr<uint8_t*>() + m_nPos;
+			return reinterpret_cast<T>(this->Ptr<uint8_t*>() + m_nPos);
 		}
 
 		auto ResetPos() -> void
