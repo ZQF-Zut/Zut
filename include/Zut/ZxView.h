@@ -40,7 +40,7 @@ namespace Zqf::Zut::ZxView
 		template<class T = uint8_t*>
 		auto CurPtr() const noexcept -> T
 		{
-			return this->Ptr<T>() + m_nPos;
+			return this->Ptr<uint8_t*>() + m_nPos;
 		}
 
 		auto ResetPos() -> void
@@ -106,7 +106,7 @@ namespace Zqf::Zut::ZxView
 		}
 
 		template<class T>
-		T Get()
+		auto Get() -> T
 		{
 			T tmp;
 			this->Read(std::span{ &tmp,1 });
