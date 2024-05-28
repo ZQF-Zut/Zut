@@ -319,8 +319,19 @@ namespace Zqf::Zut::ZxJson
 		JValue m_JValue;
 
 	public:
-		JDoc() {
+		JDoc() 
+		{
 
+		};
+
+		template <class T>
+		JDoc(T&& rfData) noexcept
+		{
+			using T_decay = std::decay_t<decltype(rfData)>;
+
+			static_assert((std::is_same_v<T_decay, JValue> || std::is_same_v<T_decay, JArray_t> || std::is_same_v<T_decay, JObject_t>), "ZxJson::JDoc:: error type");
+
+			m_JValue = std::move(rfData);
 		};
 
 		JDoc(const std::string_view msPath)
@@ -353,7 +364,7 @@ namespace Zqf::Zut::ZxJson
 			return JParser{ { m_JMem.Ptr<char*>(), m_JMem.Size<size_t>() } }.Parse(m_JValue);
 		}
 
-		auto Save(const std::string_view msPath, bool isFormat, bool isOrder) -> void
+		auto Save(const std::string_view msPath, bool isFormat) -> void
 		{
 			std::string text;
 			m_JValue.Dump(text, isFormat, 0);
