@@ -46,7 +46,7 @@ namespace Zqf::Zut::ZxNative::Str
 
 	auto CvtSafe(const std::u16string_view u16Str, const CodePage eCodePage) -> MbcsStr_t
 	{
-		return CvtSafe({ reinterpret_cast<const wchar_t*>(u16Str.data()), u16Str.size()}, eCodePage);
+		return CvtSafe({ reinterpret_cast<const wchar_t*>(u16Str.data()), u16Str.size() }, eCodePage);
 	}
 
 	auto Cmpni(const std::string_view msStr0, const std::string_view msStr1, size_t nMaxCount) -> size_t
@@ -231,6 +231,7 @@ namespace Zqf::Zut::ZxNative::Fs
 			{
 				::CreateDirectoryW(path_cstr_org, nullptr);
 			}
+
 			*path_cstr = tmp;
 			path_cstr++;
 		}

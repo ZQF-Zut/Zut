@@ -154,13 +154,17 @@ namespace Zqf::Zut::ZxJson
 		{
 			m_Data = static_cast<JInt_t>(rfData);
 		}
+		else if constexpr (std::is_same_v<T_decay, std::string_view>)
+		{
+			m_Data = std::make_unique<JString_t>(rfData.data(), rfData.size());
+		}
 		else if constexpr (std::is_same_v<T_decay, JString_t> || std::is_same_v<T_decay, JArray_t> || std::is_same_v<T_decay, JObject_t>)
 		{
 			m_Data = std::make_unique<T_decay>(std::move(rfData));
 		}
 		else
 		{
-			assert(false); // type of failure to capture
+			throw std::runtime_error(std::format("ZxJson::JValue::operator=[]<>: error type {}", typeid(T).name()));
 		}
 
 		return *this;

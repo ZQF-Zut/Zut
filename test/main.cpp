@@ -83,6 +83,7 @@ auto main() -> int
 	try
 	{
 		const std::array<uint16_t, 2> ee = { 131,66 };
+		Zut::ZxNative::Fs::MakeDirs("abdata15/");
 		Zut::ZxFile::SaveDataViaPath("1.txt", std::span{ ee }, true);
 		// Zut::ZxView::Reader reader = ee.data();
 		// auto xx = reader.Get<uint16_t>();
