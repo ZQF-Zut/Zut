@@ -29,6 +29,9 @@ namespace Zqf::Zut::ZxNative::Str
 	// cvt wide-string to multibyte-string with warning log
 	auto CvtSafe(const std::wstring_view wsStr, const CodePage eCodePage) -> MbcsStr_t;
 
+	// cvt u16-string to multibyte-string with warning log
+	auto CvtSafe(const std::u16string u16Str, const CodePage eCodePage) -> MbcsStr_t;
+
 	// compare substrings without case sensitivity
 	auto Cmpni(const std::string_view msStr0, const std::string_view msStr1, size_t nMaxCount) -> size_t;
 }
