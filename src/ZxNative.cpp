@@ -227,11 +227,12 @@ namespace Zqf::Zut::ZxNative::Fs
 
 			wchar_t tmp = *path_cstr;
 			*path_cstr = {};
-			if (::GetFileAttributesW(path_cstr) == INVALID_FILE_ATTRIBUTES)
+			if (::GetFileAttributesW(path_cstr_org) == INVALID_FILE_ATTRIBUTES)
 			{
 				::CreateDirectoryW(path_cstr_org, nullptr);
 			}
 			*path_cstr = tmp;
+			path_cstr++;
 		}
 
 		return true;
