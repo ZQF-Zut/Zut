@@ -27,14 +27,8 @@ namespace Zqf::Zut::ZxView
 		template<class T = uint8_t*>
 		auto Ptr() const noexcept -> T
 		{
-			if constexpr (std::is_pointer_v<T>)
-			{
-				return reinterpret_cast<T>(m_pData);
-			}
-			else
-			{
-				static_assert(true, "ZxView::View_Basic::Ptr: not pointer type!");
-			}
+			static_assert(std::is_pointer_v<T>, "ZxView::View_Basic::Ptr: not pointer type!");
+			return reinterpret_cast<T>(m_pData);
 		}
 
 		template<class T = uint8_t*>
@@ -87,19 +81,13 @@ namespace Zqf::Zut::ZxView
 		template<class T>
 		Reader& operator>>(T& rfData)
 		{
-			using T_decay = std::decay_t<decltype(rfData)>;
-
-			if constexpr (std::is_bounded_array_v<T>)
-			{
-				this->Read(std::span{ rfData });
-			}
-			else if constexpr (std::is_integral_v<T_decay>)
+			if constexpr (std::is_integral_v<std::decay_t<decltype(rfData)>>)
 			{
 				this->Read(std::span{ &rfData,1 });
 			}
 			else
 			{
-				static_assert(true, "ZxView::Reader::operator>>: not match type");
+				this->Read(std::span{ rfData });
 			}
 
 			return *this;
@@ -109,7 +97,7 @@ namespace Zqf::Zut::ZxView
 		auto Get() -> T
 		{
 			T tmp;
-			this->Read(std::span{ &tmp,1 });
+			this->operator>>(tmp);
 			return tmp;
 		}
 	};

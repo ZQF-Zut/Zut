@@ -84,7 +84,7 @@ auto main() -> int
 	{
 		const std::array<uint16_t, 2> ee = { 131,66 };
 		Zut::ZxView::Reader reader = ee.data();
-		uint16_t xx = reader.Get<uint16_t>();
+		auto xx = reader.Get<uint16_t>();
 		JsonBench();
 
 	}
