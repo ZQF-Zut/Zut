@@ -23,7 +23,7 @@ static auto JsonBench() -> void
 		{
 			record.Beg();
 			Zut::ZxJson::JValue jv;
-			Zut::ZxJson::JParser{ { jmem.Ptr<char*>(), jmem.Size<size_t>() } }.Parse(jv);
+			Zut::ZxJson::JParser{ { jmem.Ptr<char*>(), jmem.SizeBytes<size_t>() } }.Parse(jv);
 			record.End();
 		}
 
@@ -34,7 +34,6 @@ static auto JsonBench() -> void
 		std::println(std::cerr, "std::exception: {}", err.what());
 	}
 }
-
 
 static auto TestJsonParseRegularEscape() -> bool
 {
@@ -77,18 +76,20 @@ static auto TestJsonParseUnicodeEscape() -> bool
 	return jv.Get<std::string>() == str1;
 }
 
+static auto TestZxMem() -> void
+{
+	std::array<uint16_t, 2> ee = { 131,66 };
+	Zut::ZxMem mem;
+	mem.Copy(std::span{ ee });
+	int a = 0;
+}
+
 auto main() -> int
 {
 	Zut::ZxNative::Sys::InitConsoleEncoding();
 	try
 	{
-		const std::array<uint16_t, 2> ee = { 131,66 };
-		Zut::ZxNative::Fs::MakeDirs("abdata15/");
-		Zut::ZxFile::SaveDataViaPath("1.txt", std::span{ ee }, true);
-		// Zut::ZxView::Reader reader = ee.data();
-		// auto xx = reader.Get<uint16_t>();
-		//JsonBench();
-
+		TestZxMem();
 	}
 	catch (const std::exception& err)
 	{

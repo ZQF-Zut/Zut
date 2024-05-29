@@ -361,7 +361,7 @@ namespace Zqf::Zut::ZxJson
 		auto Load(const std::string_view msPath) -> bool
 		{
 			ZxMem m_JMem(msPath);
-			return JParser{ { m_JMem.Ptr<char*>(), m_JMem.Size<size_t>() } }.Parse(m_JValue);
+			return JParser{ { m_JMem.Ptr<char*>(), m_JMem.SizeBytes<size_t>() } }.Parse(m_JValue);
 		}
 
 		auto Save(const std::string_view msPath, bool isFormat) -> void

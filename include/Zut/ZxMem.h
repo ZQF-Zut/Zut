@@ -27,7 +27,7 @@ namespace Zqf::Zut
 
 		ZxMem(const std::string_view msPath, size_t nLoadSize = AUTO_MEM_AUTO_SIZE)
 		{
-			this->LoadData(msPath, nLoadSize);
+			this->Load(msPath, nLoadSize);
 		}
 
 		ZxMem(const ZxMem& rfOBJ)
@@ -77,8 +77,8 @@ namespace Zqf::Zut
 
 		ZxMem& operator+(const ZxMem& rfOBJ)
 		{
-			size_t cur_size = this->Size();
-			size_t append_size = rfOBJ.Size();
+			size_t cur_size = this->SizeBytes();
+			size_t append_size = rfOBJ.SizeBytes();
 
 			if (append_size)
 			{
@@ -116,7 +116,7 @@ namespace Zqf::Zut
 
 		uint8_t* end() const noexcept
 		{
-			return this->Ptr() + this->Size();
+			return this->Ptr() + this->SizeBytes();
 		}
 
 		uint8_t operator[](size_t nIndex) noexcept
@@ -140,7 +140,7 @@ namespace Zqf::Zut
 		}
 
 		template <class T = size_t>
-		auto Size() const noexcept -> T
+		auto SizeBytes() const noexcept -> T
 		{
 			if constexpr (std::is_integral_v<T>)
 			{
@@ -148,18 +148,18 @@ namespace Zqf::Zut
 			}
 			else
 			{
-				static_assert(true, "ZxMem::Size: not integral type!");
+				static_assert(true, "ZxMem::SizeBytes: not integral type!");
 			}
 		}
 
 	public:
-		ZxMem& SaveData(const std::string_view msPath, bool isForceSave)
+		auto Save(const std::string_view msPath, bool isForceSave) const -> const ZxMem&
 		{
 			ZxFile::SaveDataViaPath(msPath, std::span{ *this }, isForceSave);
 			return *this;
 		}
 
-		ZxMem& LoadData(const std::string_view msPath, size_t nSize = AUTO_MEM_AUTO_SIZE)
+		auto Load(const std::string_view msPath, size_t nSize = AUTO_MEM_AUTO_SIZE) -> ZxMem&
 		{
 			ZxFile ifs{ msPath, OpenMod::ReadSafe };
 
@@ -179,16 +179,24 @@ namespace Zqf::Zut
 					}
 					else
 					{
-						throw std::runtime_error(std::format("ZxMem::LoadData: read size larger than file size!, msPath: {}", msPath));
+						throw std::runtime_error(std::format("ZxMem::Load: read size larger than file size!, msPath: {}", msPath));
 					}
 				}
 			}
 			else
 			{
-				throw std::runtime_error(std::format("ZxMem::LoadData: get file size error!, msPath: {}", msPath));
+				throw std::runtime_error(std::format("ZxMem::Load: get file size error!, msPath: {}", msPath));
 			}
 
-			ifs.Read(std::span{ this->Resize(read_size).Ptr(), this->Size() });
+			ifs.Read(std::span{ this->Resize(read_size).Ptr(), this->SizeBytes() });
+			return *this;
+		}
+
+		template <class T, size_t S>
+		auto Copy(std::span<T,S> spData) -> ZxMem&
+		{
+			this->Resize(spData.size_bytes(), false);
+			std::memcpy(this->Ptr<uint8_t*>(), spData.data(), spData.size_bytes());
 			return *this;
 		}
 	};
