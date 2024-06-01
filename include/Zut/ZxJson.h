@@ -317,7 +317,7 @@ namespace Zqf::Zut::ZxJson
 
 namespace Zqf::Zut::ZxJson
 {
-	auto Load(const std::string_view msPath) -> JValue
+	static auto Load(const std::string_view msPath) -> JValue
 	{
 		JValue jv;
 		ZxMem m_JMem(msPath);
@@ -325,7 +325,7 @@ namespace Zqf::Zut::ZxJson
 		return jv;
 	}
 
-	auto Save(const JValue& rfJValue,  const std::string_view msPath, bool isFormat, bool isForceSave) -> void
+	static auto Save(const JValue& rfJValue,  const std::string_view msPath, bool isFormat, bool isForceSave) -> void
 	{
 		std::string text;
 		rfJValue.Dump(text, isFormat, 0);
@@ -341,6 +341,11 @@ namespace Zqf::Zut::ZxJson
 		JDoc() 
 		{
 
+		};
+
+		JDoc(const std::string_view msPath)
+		{
+			this->Load(msPath);
 		};
 
 		~JDoc() {
