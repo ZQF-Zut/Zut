@@ -334,11 +334,6 @@ namespace Zqf::Zut::ZxJson
 			m_JValue = std::move(rfData);
 		};
 
-		JDoc(const std::string_view msPath)
-		{
-			this->Load(msPath);
-		}
-
 		~JDoc() {
 
 		};
