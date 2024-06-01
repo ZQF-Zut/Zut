@@ -220,7 +220,7 @@ namespace Zqf::Zut::ZxJson
 		else if constexpr (std::is_same_v<T_decay, JString_View_t>)
 		{
 			assert(std::holds_alternative< std::unique_ptr<JString_t>>(m_Data));
-			return std::string_view{ *std::get<std::unique_ptr<JString_t>>(m_Data) };
+			return JString_View_t{ *std::get<std::unique_ptr<JString_t>>(m_Data) };
 		}
 		else if constexpr (std::is_same_v<T_decay, JString_t> || std::is_same_v<T_decay, JArray_t> || std::is_same_v<T_decay, JObject_t>)
 		{
@@ -241,7 +241,7 @@ namespace Zqf::Zut::ZxJson
 
 		if (std::holds_alternative<JNull_t>(m_Data))
 		{
-			m_Data = std::unique_ptr<T_decay>();
+			m_Data = std::make_unique<T_decay>();
 		}
 		else if (!std::holds_alternative<std::unique_ptr<T_decay>>(m_Data))
 		{

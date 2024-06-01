@@ -42,7 +42,7 @@ static auto TestJsonParseRegularEscape() -> bool
 	Zut::ZxJson::JValue jv;
 	Zut::ZxJson::JParser{ str0 }.Parse(jv);
 
-	if (jv.Get<std::string>() != str1)
+	if (jv.Get<std::string_view>() != str1)
 	{
 		return false;
 	}
@@ -89,7 +89,8 @@ auto main() -> int
 	Zut::ZxNative::Sys::InitConsoleEncoding();
 	try
 	{
-		TestZxMem();
+		JsonBench();
+		// TestZxMem();
 	}
 	catch (const std::exception& err)
 	{
