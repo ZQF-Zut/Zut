@@ -219,7 +219,7 @@ namespace Zqf::Zut::ZxJson
 	{
 		assert(this->CurToken() == '[');
 
-		auto& jarry = rfJValue.Sure<JArray_t>();
+		auto& jarry = rfJValue.Sure<JArray_t&>();
 		this->AddReadBytes();
 
 		while (this->NextToken() != ']')
@@ -237,7 +237,7 @@ namespace Zqf::Zut::ZxJson
 	{
 		assert(this->CurToken() == '{');
 
-		auto& obj = rfJValue.Sure<JObject_t>();
+		auto& obj = rfJValue.Sure<JObject_t&>();
 		this->AddReadBytes();
 
 		std::string_view key;

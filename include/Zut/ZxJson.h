@@ -40,8 +40,8 @@ namespace Zqf::Zut::ZxJson
 
 	public:
 		template <class T> JValue& operator[](const T& rfData);
-		template <class T> auto Get() ->T&;
-		template <class T> auto Sure() -> T&;
+		template <class T> auto Get() -> T;
+		template <class T> auto Sure() -> T;
 		template <class T> auto Check() -> bool;
 
 	public:
@@ -178,15 +178,15 @@ namespace Zqf::Zut::ZxJson
 
 		if constexpr (std::is_bounded_array_v<T> || std::is_same_v<T_decay, std::string>)
 		{
-			return this->Get<JObject_t>()[rfData];
+			return this->Get<JObject_t&>()[rfData];
 		}
 		else if constexpr (std::is_same_v<T_decay, std::string_view>)
 		{
-			return this->Get<JObject_t>()[std::string(rfData)];
+			return this->Get<JObject_t&>()[std::string(rfData)];
 		}
 		else if constexpr (std::is_integral_v<T_decay>)
 		{
-			return this->Get<JArray_t>()[rfData];
+			return this->Get<JArray_t&>()[rfData];
 		}
 		else
 		{
@@ -194,36 +194,38 @@ namespace Zqf::Zut::ZxJson
 		}
 	}
 
-	template <class T> inline auto JValue::Get() -> T&
+	template <class T> inline auto JValue::Get() -> T
 	{
-		if constexpr (std::is_same_v<T, JDataType>)
+		using T_decay = std::decay_t<T>;
+
+		if constexpr (std::is_same_v<T_decay, JDataType>)
 		{
 			return m_Data;
 		}
-		else if constexpr (std::is_same_v<T, JBool_t>)
+		else if constexpr (std::is_same_v<T_decay, JBool_t>)
 		{
 			assert(std::holds_alternative<JBool_t>(m_Data));
 			return std::get<JBool_t>(m_Data);
 		}
-		else if constexpr (std::is_integral_v<T>)
+		else if constexpr (std::is_integral_v<T_decay>)
 		{
 			assert(std::holds_alternative<JInt_t>(m_Data));
 			return static_cast<T>(std::get<JInt_t>(m_Data));
 		}
-		else if constexpr (std::is_same_v<T, JFloat_t> || std::is_same_v<T, JDouble_t>)
+		else if constexpr (std::is_same_v<T_decay, JFloat_t> || std::is_same_v<T_decay, JDouble_t>)
 		{
 			assert(std::holds_alternative<JDouble_t>(m_Data));
 			return static_cast<T>(std::get<JDouble_t>(m_Data));
 		}
-		else if constexpr (std::is_same_v<T, JString_View_t>)
+		else if constexpr (std::is_same_v<T_decay, JString_View_t>)
 		{
-			assert(std::holds_alternative<JString_t>(m_Data));
-			return *std::get<std::unique_ptr<JString_t>>(m_Data);
+			assert(std::holds_alternative< std::unique_ptr<JString_t>>(m_Data));
+			return std::string_view{ *std::get<std::unique_ptr<JString_t>>(m_Data) };
 		}
-		else if constexpr (std::is_same_v<T, JString_t> || std::is_same_v<T, JArray_t> || std::is_same_v<T, JObject_t>)
+		else if constexpr (std::is_same_v<T_decay, JString_t> || std::is_same_v<T_decay, JArray_t> || std::is_same_v<T_decay, JObject_t>)
 		{
-			assert(std::holds_alternative<std::unique_ptr<std::remove_cvref_t<T>>>(m_Data));
-			return *std::get<std::unique_ptr<std::remove_cvref_t<T>>>(m_Data);
+			assert(std::holds_alternative<std::unique_ptr<T_decay>>(m_Data));
+			return *std::get<std::unique_ptr<T_decay>>(m_Data);
 		}
 		else
 		{
@@ -231,20 +233,22 @@ namespace Zqf::Zut::ZxJson
 		}
 	}
 
-	template <class T> inline auto JValue::Sure() -> T&
+	template <class T> inline auto JValue::Sure() -> T
 	{
-		static_assert((std::is_same_v<T, JString_t> || std::is_same_v<T, JArray_t> || std::is_same_v<T, JObject_t>), "ZxJson::JValue::Sure<>: error type");
+		using T_decay = std::decay_t<T>;
+
+		static_assert((std::is_same_v<T_decay, JString_t> || std::is_same_v<T_decay, JArray_t> || std::is_same_v<T_decay, JObject_t>), "ZxJson::JValue::Sure<>: error type");
 
 		if (std::holds_alternative<JNull_t>(m_Data))
 		{
-			m_Data = std::make_unique_for_overwrite<T>();
+			m_Data = std::unique_ptr<T_decay>();
 		}
-		else if (!std::holds_alternative<std::unique_ptr<T>>(m_Data))
+		else if (!std::holds_alternative<std::unique_ptr<T_decay>>(m_Data))
 		{
 			throw std::runtime_error("ZxJson::JValue::Sure<>: error!");
 		}
 
-		return *std::get<std::unique_ptr<T>>(m_Data);
+		return *std::get<std::unique_ptr<T_decay>>(m_Data);
 	}
 
 	template<class T> inline auto JValue::Check() -> bool
@@ -345,12 +349,12 @@ namespace Zqf::Zut::ZxJson
 
 		auto GetJArray() -> JArray_t&
 		{
-			return m_JValue.Sure<JArray_t>();
+			return m_JValue.Sure<JArray_t&>();
 		}
 
 		auto GetJObject() -> JObject_t&
 		{
-			return m_JValue.Sure<JObject_t>();
+			return m_JValue.Sure<JObject_t&>();
 		}
 
 		auto Load(const std::string_view msPath) -> bool

@@ -73,7 +73,7 @@ static auto TestJsonParseUnicodeEscape() -> bool
 	
 	Zut::ZxJson::JValue jv;
 	Zut::ZxJson::JParser{ str0 }.Parse(jv);
-	return jv.Get<std::string>() == str1;
+	return jv.Get<std::string_view>() == str1;
 }
 
 static auto TestZxMem() -> void
