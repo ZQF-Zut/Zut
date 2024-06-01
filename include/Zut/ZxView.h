@@ -66,7 +66,7 @@ namespace Zqf::Zut::ZxView
 
 		}
 
-		Reader(const void* pData) : View_Basic(pData)
+		explicit Reader(const void* pData) : View_Basic(pData)
 		{
 
 		}
