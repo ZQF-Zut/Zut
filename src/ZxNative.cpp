@@ -14,39 +14,53 @@ namespace Zqf::Zut::ZxNative::Sys
 
 namespace Zqf::Zut::ZxNative::Str
 {
-	auto CvtForce(const std::string_view msStr, const CodePage eCodePage) -> WideStr_t
+	static auto WideStrViewToU16StrView(const std::wstring_view& wsStr) -> std::u16string_view
 	{
-		return Wx32::Utils::StrCvtForce(msStr, eCodePage);
+		return { reinterpret_cast<const char16_t*>(wsStr.data()), wsStr.size() };
 	}
 
-	auto CvtForce(const std::wstring_view wsStr, const CodePage eCodePage) -> MbcsStr_t
+	static auto U16StrViewToWideStrView(const std::u16string_view& u16Str) -> std::wstring_view
 	{
-		return Wx32::Utils::StrCvtForce(wsStr, eCodePage);
+		return { reinterpret_cast<const wchar_t*>(u16Str.data()), u16Str.size() };
 	}
 
-	auto CvtForce(const std::string_view msStr, std::span<wchar_t> spBuffer, const CodePage eCodePage) -> std::wstring_view
+	static auto WideStrToU16Str(Wx32::WideStr_t&& rfWideStr) -> U16Str_t
 	{
-		return Wx32::Utils::StrCvtForce(msStr, spBuffer, eCodePage);
+		return
+		{
+			WideStrViewToU16StrView(rfWideStr.first),
+			std::unique_ptr<char16_t[]>{ reinterpret_cast<char16_t*>(rfWideStr.second.release()) }
+		};
 	}
 
-	auto CvtForce(const std::wstring_view wsStr, std::span<char> spBuffer, const CodePage eCodePage) -> std::string_view
+	auto CvtSafe(const std::string_view msStr, const CodePage eCodePage) -> U16Str_t
 	{
-		return Wx32::Utils::StrCvtForce(wsStr, spBuffer, eCodePage);
+		return WideStrToU16Str(Wx32::Utils::StrCvtSafe(msStr, eCodePage));
 	}
 
-	auto CvtSafe(const std::string_view msStr, const CodePage eCodePage) -> WideStr_t
+	auto CvtSafe(const std::u16string_view u16Str, const CodePage eCodePage) -> U8Str_t
 	{
-		return Wx32::Utils::StrCvtSafe(msStr, eCodePage);
+		return Wx32::Utils::StrCvtSafe(U16StrViewToWideStrView(u16Str), eCodePage);
 	}
 
-	auto CvtSafe(const std::wstring_view wsStr, const CodePage eCodePage) -> MbcsStr_t
+	auto CvtForce(const std::string_view msStr, const CodePage eCodePage) -> U16Str_t
 	{
-		return Wx32::Utils::StrCvtSafe(wsStr, eCodePage);
+		return WideStrToU16Str(Wx32::Utils::StrCvtForce(msStr, eCodePage));
 	}
 
-	auto CvtSafe(const std::u16string_view u16Str, const CodePage eCodePage) -> MbcsStr_t
+	auto CvtForce(const std::u16string_view u16Str, const CodePage eCodePage) -> U8Str_t
 	{
-		return CvtSafe({ reinterpret_cast<const wchar_t*>(u16Str.data()), u16Str.size() }, eCodePage);
+		return Wx32::Utils::StrCvtForce(U16StrViewToWideStrView(u16Str), eCodePage);
+	}
+
+	auto CvtForce(const std::string_view msStr, std::span<char16_t> spBuffer, const CodePage eCodePage) -> std::u16string_view
+	{
+		return WideStrViewToU16StrView(Wx32::Utils::StrCvtForce(msStr, std::span<wchar_t>{ reinterpret_cast<wchar_t*>(spBuffer.data()), spBuffer.size() }, eCodePage));
+	}
+
+	auto CvtForce(const std::u16string_view u16Str, std::span<char> spBuffer, const CodePage eCodePage) -> std::string_view
+	{
+		return Wx32::Utils::StrCvtForce(U16StrViewToWideStrView(u16Str), spBuffer, eCodePage);
 	}
 
 	auto Cmpni(const std::string_view msStr0, const std::string_view msStr1, size_t nMaxCount) -> size_t
@@ -192,12 +206,12 @@ namespace Zqf::Zut::ZxNative::Fs
 		return std::nullopt;
 	}
 
-	auto Fs::SelfDir() -> MbcsStr_t
+	auto Fs::SelfDir() -> U8Str_t
 	{
 		return Wx32::Kernel32::GetCurrentDirectoryU8();
 	}
 
-	auto Fs::SelfPath() -> MbcsStr_t
+	auto Fs::SelfPath() -> U8Str_t
 	{
 		return Wx32::Kernel32::GetModuleFileNameU8(nullptr);
 	}

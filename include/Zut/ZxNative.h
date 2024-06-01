@@ -11,26 +11,23 @@ namespace Zqf::Zut::ZxNative::Sys
 
 namespace Zqf::Zut::ZxNative::Str
 {
-	// cvt multibyte-string to wide-string without warning log
-	auto CvtForce(const std::string_view msStr, const CodePage eCodePage) -> WideStr_t;
-
-	// cvt wide-string to multibyte-string without warning log
-	auto CvtForce(const std::wstring_view wsStr, const CodePage eCodePage) -> MbcsStr_t;
-
-	// cvt multibyte-string to wide-string use a existing buffer, without warning log
-	auto CvtForce(const std::string_view msStr, std::span<wchar_t> spBuffer, const CodePage eCodePage) -> std::wstring_view;
-
-	// cvt wide-string to multibyte-string use a existing buffer, without warning log
-	auto CvtForce(const std::wstring_view wsStr, std::span<char> spBuffer, const CodePage eCodePage) -> std::string_view;
-
-	// cvt multibyte-string to wide-string with warning log
-	auto CvtSafe(const std::string_view msStr, const CodePage eCodePage) -> WideStr_t;
-
-	// cvt wide-string to multibyte-string with warning log
-	auto CvtSafe(const std::wstring_view wsStr, const CodePage eCodePage) -> MbcsStr_t;
+	// cvt multibyte-string to u16-string with warning log
+	auto CvtSafe(const std::string_view msStr, const CodePage eCodePage) -> U16Str_t;
 
 	// cvt u16-string to multibyte-string with warning log
-	auto CvtSafe(const std::u16string_view u16Str, const CodePage eCodePage) -> MbcsStr_t;
+	auto CvtSafe(const std::u16string_view u16Str, const CodePage eCodePage) -> U8Str_t;
+
+	// cvt multibyte-string to u16-string without warning log
+	auto CvtForce(const std::string_view msStr, const CodePage eCodePage) -> U16Str_t;
+
+	// cvt u16-string to multibyte-string without warning log
+	auto CvtForce(const std::u16string_view u16Str, const CodePage eCodePage) -> U8Str_t;
+
+	// cvt multibyte-string to u16-string use a existing buffer, without warning log
+	auto CvtForce(const std::string_view msStr, std::span<char16_t> spBuffer, const CodePage eCodePage) -> std::u16string_view;
+
+	// cvt u16-string to multibyte-string use a existing buffer, without warning log
+	auto CvtForce(const std::u16string_view u16Str, std::span<char> spBuffer, const CodePage eCodePage) -> std::string_view;
 
 	// compare substrings without case sensitivity
 	auto Cmpni(const std::string_view msStr0, const std::string_view msStr1, size_t nMaxCount) -> size_t;
@@ -72,8 +69,8 @@ namespace Zqf::Zut::ZxNative::Fs
 	auto WalkNextDir(SysID hFind, std::span<char> spBuffer) -> std::optional<std::string_view>;
 	auto WalkNextFile(SysID hFind, std::span<char> spBuffer) -> std::optional<std::string_view>;
 
-	auto SelfDir() -> MbcsStr_t;
-	auto SelfPath() -> MbcsStr_t;
+	auto SelfDir() -> U8Str_t;
+	auto SelfPath() -> U8Str_t;
 
 	auto Exist(const std::string_view msPath) -> bool;
 
