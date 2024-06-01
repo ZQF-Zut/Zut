@@ -317,6 +317,21 @@ namespace Zqf::Zut::ZxJson
 
 namespace Zqf::Zut::ZxJson
 {
+	auto Load(const std::string_view msPath) -> JValue
+	{
+		JValue jv;
+		ZxMem m_JMem(msPath);
+		JParser{ { m_JMem.Ptr<char*>(), m_JMem.SizeBytes<size_t>() } }.Parse(jv);
+		return jv;
+	}
+
+	auto Save(const JValue& rfJValue,  const std::string_view msPath, bool isFormat, bool isForceSave) -> void
+	{
+		std::string text;
+		rfJValue.Dump(text, isFormat, 0);
+		ZxFile::SaveDataViaPath(msPath, std::span{ text }, isForceSave);
+	}
+
 	class JDoc
 	{
 	private:
@@ -326,16 +341,6 @@ namespace Zqf::Zut::ZxJson
 		JDoc() 
 		{
 
-		};
-
-		template <class T>
-		JDoc(T&& rfData) noexcept
-		{
-			using T_decay = std::decay_t<decltype(rfData)>;
-
-			static_assert((std::is_same_v<T_decay, JValue> || std::is_same_v<T_decay, JArray_t> || std::is_same_v<T_decay, JObject_t>), "ZxJson::JDoc:: error type");
-
-			m_JValue = std::move(rfData);
 		};
 
 		~JDoc() {
@@ -363,11 +368,9 @@ namespace Zqf::Zut::ZxJson
 			return JParser{ { m_JMem.Ptr<char*>(), m_JMem.SizeBytes<size_t>() } }.Parse(m_JValue);
 		}
 
-		auto Save(const std::string_view msPath, bool isFormat) -> void
+		auto Save(const std::string_view msPath, bool isFormat) const -> void
 		{
-			std::string text;
-			m_JValue.Dump(text, isFormat, 0);
-			ZxFile::SaveDataViaPath(msPath, std::span{ text }, true);
+			ZxJson::Save(this->m_JValue, msPath, isFormat, true);
 		}
 	};
 }
