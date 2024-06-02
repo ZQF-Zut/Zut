@@ -35,6 +35,25 @@ static auto JsonBench() -> void
 	}
 }
 
+static auto JsonDumpBench() -> void
+{
+	Zut::ZxJson::JDoc jdoc("1.json");
+	auto& jv = jdoc.GetJValue();
+
+	Zut::ZxRecord record;
+
+	for (size_t i = 0; i < 200; i++)
+	{
+		record.Beg();
+		std::string dumpx;
+		jv.Dump(dumpx, true, 0);
+		std::cout << dumpx;
+		record.End();
+	}
+
+	record.Log();
+}
+
 static auto TestJsonParseRegularEscape() -> bool
 {
 	constexpr std::string_view str0 = R"JSON("123\n666\r4565\tefwe\"fawfw\\afjasf\bsafasf\fawfasf\fasf\tFDaf\\123")JSON";
@@ -84,12 +103,14 @@ static auto TestZxMem() -> void
 	int a = 0;
 }
 
+
+
 auto main() -> int
 {
 	Zut::ZxNative::Sys::InitConsoleEncoding();
 	try
 	{
-		JsonBench();
+		// JsonBench();
 		// TestZxMem();
 	}
 	catch (const std::exception& err)
