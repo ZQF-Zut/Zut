@@ -62,7 +62,7 @@ namespace Zqf::Zut::ZxJson
 
 	inline JValue::JValue(JValue&& rfJValue) noexcept
 	{
-		this->m_Data = std::move(rfJValue.m_Data);
+		this->operator=(std::forward<JValue>(rfJValue));
 	}
 
 	inline auto JValue::operator=(const JValue& rfJValue) -> JValue&
@@ -91,6 +91,7 @@ namespace Zqf::Zut::ZxJson
 	inline auto JValue::operator=(JValue&& rfJValue) noexcept -> JValue&
 	{
 		this->m_Data = std::move(rfJValue.m_Data);
+		rfJValue.m_Data = JNull_t{};
 		return *this;
 	};
 
