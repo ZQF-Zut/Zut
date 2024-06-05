@@ -16,34 +16,6 @@ namespace Zqf::Zut
 		size_t m_nSizeBytes{};
 		std::unique_ptr<uint8_t[]> m_upMemData;
 
-	private:
-		template <class T = uint8_t*>
-		auto Ptr() const noexcept -> T
-		{
-			if constexpr (std::is_pointer_v<T>)
-			{
-				return reinterpret_cast<T>(m_upMemData.get());
-			}
-			else
-			{
-				static_assert(false, "ZxMem::Ptr<T>(): not pointer type!");
-			}
-		}
-
-		template<class T = uint8_t*>
-		auto PtrCur() const noexcept -> T
-		{
-			assert(m_nPos <= m_nSizeBytes);
-			if constexpr (std::is_pointer_v<T>)
-			{
-				return (this->Ptr<uint8_t*>() + m_nPos);
-			}
-			else
-			{
-				static_assert(false, "ZxMem::CurPtr<T>(): not pointer type!");
-			}
-		}
-
 	public:
 		ZxMem()
 		{
@@ -105,6 +77,33 @@ namespace Zqf::Zut
 		}
 
 	public:
+		template <class T = uint8_t*>
+		auto Ptr() const noexcept -> T
+		{
+			if constexpr (std::is_pointer_v<T>)
+			{
+				return reinterpret_cast<T>(m_upMemData.get());
+			}
+			else
+			{
+				static_assert(false, "ZxMem::Ptr<T>(): not pointer type!");
+			}
+		}
+
+		template<class T = uint8_t*>
+		auto PtrCur() const noexcept -> T
+		{
+			assert(m_nPos <= m_nSizeBytes);
+			if constexpr (std::is_pointer_v<T>)
+			{
+				return (this->Ptr<uint8_t*>() + m_nPos);
+			}
+			else
+			{
+				static_assert(false, "ZxMem::CurPtr<T>(): not pointer type!");
+			}
+		}
+
 		template <class T = uint8_t>
 		auto Span() const noexcept -> std::span<T>
 		{
