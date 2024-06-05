@@ -29,8 +29,16 @@ namespace Zqf::Zut::ZxJson
 
 	public:
 		JValue();
-		template <class T> JValue(T&& rfData);
-		template <class T> auto operator=(T&& rfData)->JValue&;
+		JValue(const JValue& rfJValue);
+		JValue(JValue&& rfJar) noexcept;
+		auto operator=(const JValue& rfJValue) -> JValue&;
+		auto operator=(JValue&& rfJValue) noexcept -> JValue&;
+
+	public:
+		template <class T> JValue(const T& rfData);
+		template <class T> JValue(T&& rfData) noexcept;
+		template <class T> auto operator=(const T& rfData) -> JValue&;
+		template <class T> auto operator=(T&& rfData) noexcept -> JValue&;
 		template <class T> auto operator[](T&& rfData)->JValue&;
 
 	public:
@@ -47,40 +55,60 @@ namespace Zqf::Zut::ZxJson
 		m_Data = JNull_t{};
 	}
 
-	template <class T> inline JValue::JValue(T&& rfData)
+	inline JValue::JValue(const JValue& rfJValue)
 	{
-		this->operator=(std::forward<T>(rfData));
+		this->operator=(rfJValue);
 	}
 
-	template <class T> auto JValue::operator=(T&& rfData) -> JValue&
+	inline JValue::JValue(JValue&& rfJValue) noexcept
+	{
+		this->m_Data = std::move(rfJValue.m_Data);
+	}
+
+	inline auto JValue::operator=(const JValue& rfJValue) -> JValue&
+	{
+		std::visit(
+			[this](auto&& data) {
+				using T_data = std::decay_t<decltype(data)>;
+				if constexpr (std::is_same_v<T_data, std::unique_ptr<JString_t>> || std::is_same_v<T_data, std::unique_ptr<JArray_t>> || std::is_same_v<T_data, std::unique_ptr<JObject_t>>)
+				{
+					(*this) = *data;
+				}
+				else if constexpr (std::is_same_v<T_data, JNull_t> || std::is_same_v<T_data, JBool_t> || std::is_same_v<T_data, JInt_t> || std::is_same_v<T_data, JDouble_t>)
+				{
+					(*this) = data;
+				}
+				else
+				{
+					static_assert(false, "ZxJson::JValue::operator=<>(): error type!");
+				}
+			},
+			rfJValue.m_Data);
+
+		return *this;
+	};
+
+	inline auto JValue::operator=(JValue&& rfJValue) noexcept -> JValue&
+	{
+		this->m_Data = std::move(rfJValue.m_Data);
+		return *this;
+	};
+
+	template <class T> inline JValue::JValue(const T& rfData)
+	{
+		this->operator= <T>(rfData);
+	}
+
+	template <class T> inline JValue::JValue(T&& rfData) noexcept
+	{
+		this->operator= <T>(std::forward<T>(rfData));
+	}
+
+	template <class T> auto JValue::operator=(const T& rfData) -> JValue&
 	{
 		using T_decay = std::decay_t<decltype(rfData)>;
 
-		if constexpr (std::is_same_v<T, JValue>)
-		{
-			std::visit(
-				[this](auto&& data) {
-					using T_data = std::decay_t<decltype(data)>;
-					if constexpr (std::is_same_v<T_data, std::unique_ptr<JString_t>> || std::is_same_v<T_data, std::unique_ptr<JArray_t>> || std::is_same_v<T_data, std::unique_ptr<JObject_t>>)
-					{
-						(*this) = *data;
-					}
-					else if constexpr (std::is_same_v<T_data, JNull_t> || std::is_same_v<T_data, JBool_t> || std::is_same_v<T_data, JInt_t> || std::is_same_v<T_data, JDouble_t>)
-					{
-						(*this) = data;
-					}
-					else
-					{
-						static_assert(false, "ZxJson::JValue::operator=<JValue>: error data type");
-					}
-				},
-				rfData.m_Data);
-		}
-		else if constexpr (std::is_same_v<T, JValue&> || std::is_same_v<T, const JValue&>)
-		{
-			m_Data = rfData.m_Data;
-		}
-		else if constexpr (std::is_same_v<T_decay, JNull_t>)
+		if constexpr (std::is_same_v<T_decay, JNull_t>)
 		{
 			m_Data = JNull_t{};
 		}
@@ -92,7 +120,7 @@ namespace Zqf::Zut::ZxJson
 		{
 			m_Data = static_cast<JInt_t>(rfData);
 		}
-		else if constexpr (std::is_bounded_array_v<std::remove_cvref_t<T>>)
+		else if constexpr (std::is_bounded_array_v<T>)
 		{
 			m_Data = std::make_unique<JString_t>(rfData);
 		}
@@ -106,7 +134,39 @@ namespace Zqf::Zut::ZxJson
 		}
 		else
 		{
-			static_assert(false, "ZxJson::JValue::operator=<T>: error type");
+			static_assert(false, "ZxJson::JValue::operator=<>(): error type!");
+		}
+
+		return *this;
+	}
+
+	template <class T> auto JValue::operator=(T&& rfData) noexcept -> JValue&
+	{
+		using T_decay = std::decay_t<decltype(rfData)>;
+
+		if constexpr (std::is_same_v<T_decay, JNull_t>)
+		{
+			m_Data = JNull_t{};
+		}
+		else if constexpr (std::is_same_v<T_decay, JFloat_t> || std::is_same_v<T_decay, JDouble_t> || std::is_same_v<T_decay, JBool_t>)
+		{
+			m_Data = rfData;
+		}
+		else if constexpr (std::is_integral_v<T_decay>)
+		{
+			m_Data = static_cast<JInt_t>(rfData);
+		}
+		else if constexpr (std::is_same_v<T_decay, std::string_view>)
+		{
+			m_Data = std::make_unique<JString_t>(rfData.data(), rfData.size());
+		}
+		else if constexpr (std::is_same_v<T_decay, JString_t> || std::is_same_v<T_decay, JArray_t> || std::is_same_v<T_decay, JObject_t>)
+		{
+			m_Data = std::make_unique<T_decay>(std::move(rfData));
+		}
+		else
+		{
+			static_assert(false, "ZxJson::JValue::operator=<>(): error type!");
 		}
 
 		return *this;
@@ -133,6 +193,7 @@ namespace Zqf::Zut::ZxJson
 			static_assert(false, "ZxJson::JValue::operator[]<T>: error type");
 		}
 	}
+
 
 	template <class T> inline auto JValue::Get() -> T
 	{
@@ -305,7 +366,7 @@ namespace Zqf::Zut::ZxJson
 		}
 
 		auto Load(const std::string_view msPath) -> bool
-		{			
+		{
 			return JParser{ ZxMem{ msPath }.Span<char>() }.Parse(m_JValue);
 		}
 
