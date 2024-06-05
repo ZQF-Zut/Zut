@@ -12,8 +12,9 @@ namespace Zqf::Zut
 	class ZxMem
 	{
 	private:
-		size_t m_uiMaxSize{};
-		size_t m_uiMemSize{};
+		size_t m_nPosBytes{};
+		size_t m_nSizeBytes{};
+		size_t m_nCapacityBytes{};
 		std::unique_ptr<uint8_t[]> m_upMemData;
 
 	public:
@@ -22,7 +23,7 @@ namespace Zqf::Zut
 
 		ZxMem(size_t nSize)
 		{
-			this->Resize(nSize, false);
+			this->ReserveBytes(nSize, false);
 		}
 
 		ZxMem(const std::string_view msPath, size_t nLoadSize = AUTO_MEM_AUTO_SIZE)
@@ -40,89 +41,58 @@ namespace Zqf::Zut
 			this->operator=(std::move(rfOBJ));
 		}
 
-		ZxMem& operator=(const ZxMem& rfOBJ)
+		auto operator=(const ZxMem& rfOBJ) -> ZxMem&
 		{
 			assert(this != &rfOBJ);
 
+			m_nPosBytes = rfOBJ.m_nPosBytes;
+			m_nSizeBytes = rfOBJ.m_nSizeBytes;
+			m_nCapacityBytes = m_nSizeBytes;
 			if (rfOBJ.m_upMemData != nullptr)
 			{
-				this->m_uiMaxSize = rfOBJ.m_uiMaxSize;
-				this->m_uiMemSize = rfOBJ.m_uiMemSize;
-				this->m_upMemData = std::make_unique_for_overwrite<uint8_t[]>(rfOBJ.m_uiMemSize);
-				::memcpy(m_upMemData.get(), rfOBJ.m_upMemData.get(), m_uiMemSize);
-			}
-			else
-			{
-				this->m_uiMaxSize = 0;
-				this->m_uiMemSize = 0;
+				m_upMemData = std::make_unique_for_overwrite<uint8_t[]>(rfOBJ.m_nSizeBytes);
+				::memcpy(m_upMemData.get(), rfOBJ.m_upMemData.get(), m_nSizeBytes);
 			}
 
 			return *this;
 		}
 
-		ZxMem& operator=(ZxMem&& rfOBJ) noexcept
+		auto operator=(ZxMem&& rfOBJ) noexcept -> ZxMem&
 		{
 			assert(this != &rfOBJ);
 
+			m_nPosBytes = rfOBJ.m_nPosBytes;
+			m_nSizeBytes = rfOBJ.m_nSizeBytes;
+			m_nCapacityBytes = rfOBJ.m_nSizeBytes;
 			m_upMemData = std::move(rfOBJ.m_upMemData);
 
-			m_uiMemSize = rfOBJ.m_uiMemSize;
-			m_uiMaxSize = rfOBJ.m_uiMaxSize;
-
-			rfOBJ.m_uiMemSize = 0;
-			rfOBJ.m_uiMaxSize = 0;
+			rfOBJ.m_nPosBytes = 0;
+			rfOBJ.m_nSizeBytes = 0;
+			rfOBJ.m_nCapacityBytes = 0;
 
 			return *this;
 		}
 
-		ZxMem& operator+(const ZxMem& rfOBJ)
+		auto operator+(const ZxMem& rfOBJ) -> ZxMem&
 		{
-			size_t cur_size = this->SizeBytes();
-			size_t append_size = rfOBJ.SizeBytes();
-
-			if (append_size)
-			{
-				this->Resize(cur_size + append_size, true);
-				::memcpy(this->Ptr() + cur_size, rfOBJ.Ptr(), append_size);
-			}
-
+			this->Write(std::span{ rfOBJ });
 			return *this;
 		}
 
-		ZxMem& Resize(size_t uiNewSize, bool isCopy = false)
+		auto operator[](const size_t nIndex) noexcept -> uint8_t
 		{
-			if (m_uiMemSize == 0)
-			{
-				m_upMemData = std::make_unique_for_overwrite<uint8_t[]>(uiNewSize);
-				m_uiMaxSize = uiNewSize;
-			}
-			else if (uiNewSize > m_uiMaxSize)
-			{
-				std::unique_ptr<uint8_t[]> tmp = std::make_unique_for_overwrite<uint8_t[]>(uiNewSize);
-				if (isCopy) { ::memcpy(tmp.get(), m_upMemData.get(), m_uiMemSize); }
-				m_upMemData = std::move(tmp);
-				m_uiMaxSize = uiNewSize;
-			}
-
-			m_uiMemSize = uiNewSize;
-
-			return *this;
+			assert(nIndex < m_nSizeBytes);
+			return this->Ptr<uint8_t*>()[nIndex];
 		}
 
-		uint8_t* begin() const noexcept
+		auto begin() const noexcept -> uint8_t*
 		{
-			return this->Ptr();
+			return this->Ptr<uint8_t*>();
 		}
 
-		uint8_t* end() const noexcept
+		auto end() const noexcept -> uint8_t*
 		{
-			return this->Ptr() + this->SizeBytes();
-		}
-
-		uint8_t operator[](size_t nIndex) noexcept
-		{
-			assert(nIndex < m_uiMemSize);
-			return this->Ptr()[nIndex];
+			return this->Ptr<uint8_t*>() + this->SizeBytes<size_t>();
 		}
 
 	public:
@@ -135,7 +105,21 @@ namespace Zqf::Zut
 			}
 			else
 			{
-				static_assert(true, "ZxMem::Ptr: not pointer type!");
+				static_assert(false, "ZxMem::Ptr<T>(): not pointer type!");
+			}
+		}
+
+		template<class T = uint8_t*>
+		auto CurPtr() const noexcept -> T
+		{
+			assert(m_nPosBytes <= m_nSizeBytes);
+			if constexpr (std::is_pointer_v<T>)
+			{
+				return (this->Ptr<uint8_t*>() + m_nPosBytes);
+			}
+			else
+			{
+				static_assert(false, "ZxMem::CurPtr<T>(): not pointer type!");
 			}
 		}
 
@@ -144,12 +128,126 @@ namespace Zqf::Zut
 		{
 			if constexpr (std::is_integral_v<T>)
 			{
-				return static_cast<T>(m_uiMemSize);
+				return static_cast<T>(m_nSizeBytes);
 			}
 			else
 			{
-				static_assert(true, "ZxMem::SizeBytes: not integral type!");
+				static_assert(false, "ZxMem::SizeBytes<T>(): not integral type!");
 			}
+		}
+
+		template <Zut::MoveWay eWay = Zut::MoveWay::Beg>
+		auto SetPos(size_t nBytes = 0) noexcept -> size_t
+		{
+			if constexpr (eWay == Zut::MoveWay::Beg)
+			{
+				m_nPosBytes = nBytes;
+			}
+			else if constexpr (eWay == Zut::MoveWay::Cur)
+			{
+				m_nPosBytes += nBytes;
+			}
+			else if constexpr (eWay == Zut::MoveWay::End)
+			{
+				m_nPosBytes = m_nSizeBytes;
+				m_nPosBytes += nBytes;
+			}
+
+			assert(m_nPosBytes <= m_nSizeBytes);
+			return m_nPosBytes;
+		}
+
+		auto ReserveBytes(size_t nNewSizeBytes, bool isDiscard = false) -> ZxMem&
+		{
+			if (m_upMemData == nullptr)
+			{
+				m_nCapacityBytes = nNewSizeBytes;
+				m_upMemData = std::make_unique_for_overwrite<uint8_t[]>(nNewSizeBytes);
+			}
+			else if (m_nCapacityBytes < nNewSizeBytes)
+			{
+				m_nCapacityBytes = nNewSizeBytes * 2;
+				std::unique_ptr<uint8_t[]> tmp = std::make_unique_for_overwrite<uint8_t[]>(m_nCapacityBytes);
+				if ((isDiscard == false) && (m_nSizeBytes != 0)) 
+				{ 
+					::memcpy(tmp.get(), m_upMemData.get(), m_nSizeBytes);
+				}
+				m_upMemData = std::move(tmp);
+			}
+
+			return *this;
+		}
+
+		auto ResizeBytes(size_t nNewSizeBytes, bool isDiscard = false) -> ZxMem&
+		{
+			this->ReserveBytes(nNewSizeBytes, isDiscard);
+			m_nSizeBytes = nNewSizeBytes;
+			return *this;
+		}
+
+		template <class T, size_t S>
+		auto Read(const std::span<T, S> spData) noexcept -> void
+		{
+			if (spData.empty()) { return; }
+			std::memcpy(spData.data(), this->CurPtr<uint8_t*>(), spData.size_bytes());
+			this->SetPos<Zut::MoveWay::Cur>(spData.size_bytes());
+		}
+
+		template <class T, size_t S>
+		auto Write(const std::span<T, S> spData) noexcept -> void
+		{
+			if (spData.empty()) { return; }
+			this->ResizeBytes(this->SizeBytes() + spData.size_bytes(), false);
+			std::memcpy(this->CurPtr<uint8_t*>(), spData.data(), spData.size_bytes());
+			this->SetPos<Zut::MoveWay::Cur>(spData.size_bytes());
+		}
+
+		template<class T>
+		ZxMem& operator>>(T& rfData)
+		{
+			using T_decay = std::decay_t<decltype(rfData)>;
+
+			if constexpr (std::is_integral_v<T_decay> || std::is_floating_point_v<T_decay>)
+			{
+				this->Read(std::span{ &rfData, 1 });
+			}
+			else
+			{
+				this->Read(std::span{ rfData });
+			}
+
+			return *this;
+		}
+
+		template<class T>
+		ZxMem& operator<<(T&& rfData)
+		{
+			using T_decay = std::decay_t<decltype(rfData)>;
+
+			if constexpr (std::is_integral_v<T_decay> || std::is_floating_point_v<T_decay>)
+			{
+				this->Write(std::span{ &rfData, 1 });
+			}
+			else
+			{
+				this->Write(std::span{ rfData });
+			}
+
+			return *this;
+		}
+
+		template <class T>
+		auto Get() -> T
+		{
+			T tmp;
+			this->operator>>(tmp);
+			return tmp;
+		}
+
+		template <class T>
+		auto Put(const T& rfData) -> ZxMem&
+		{
+			return this->operator<<(rfData);
 		}
 
 	public:
@@ -163,19 +261,19 @@ namespace Zqf::Zut
 		{
 			ZxFile ifs{ msPath, OpenMod::ReadSafe };
 
-			size_t read_size{};
+			size_t read_size_bytes{};
 			if (const auto file_size_opt = ifs.GetSize())
 			{
 				const auto file_size = *file_size_opt;
 				if (nSize == AUTO_MEM_AUTO_SIZE)
 				{
-					read_size = static_cast<size_t>(file_size);
+					read_size_bytes = static_cast<size_t>(file_size);
 				}
 				else
 				{
 					if (nSize <= file_size)
 					{
-						read_size = nSize;
+						read_size_bytes = nSize;
 					}
 					else
 					{
@@ -188,15 +286,7 @@ namespace Zqf::Zut
 				throw std::runtime_error(std::format("ZxMem::Load: get file size error!, msPath: {}", msPath));
 			}
 
-			ifs.Read(std::span{ this->Resize(read_size).Ptr(), this->SizeBytes() });
-			return *this;
-		}
-
-		template <class T, size_t S>
-		auto Copy(std::span<T,S> spData) -> ZxMem&
-		{
-			this->Resize(spData.size_bytes(), false);
-			std::memcpy(this->Ptr<uint8_t*>(), spData.data(), spData.size_bytes());
+			ifs.Read(std::span{ this->ResizeBytes(read_size_bytes, true).Ptr<uint8_t*>(), this->SizeBytes() });
 			return *this;
 		}
 	};
