@@ -149,6 +149,11 @@ namespace Zqf::Zut
 			return *this;
 		}
 
+		auto PosInc(size_t nBytes) -> ZxMem&
+		{
+			return this->PosSet<Zut::MoveWay::Cur>(nBytes);
+		}
+
 		template <class T = size_t>
 		auto SizeBytes() const noexcept -> T
 		{
