@@ -96,7 +96,7 @@ namespace Zqf::Zut
 			assert(m_nPos <= m_nSizeBytes);
 			if constexpr (std::is_pointer_v<T>)
 			{
-				return (this->Ptr<uint8_t*>() + m_nPos);
+				return reinterpret_cast<T>(this->Ptr<uint8_t*>() + m_nPos);
 			}
 			else
 			{
