@@ -71,7 +71,7 @@ namespace Zqf::Zut::ZxJson
 					}
 					else
 					{
-						throw std::runtime_error("ZxJson::JValue::Copy: error type");
+						static_assert(false, "ZxJson::JValue::operator=<JValue>: error data type");
 					}
 				},
 				rfData.m_Data);
@@ -106,7 +106,7 @@ namespace Zqf::Zut::ZxJson
 		}
 		else
 		{
-			throw std::runtime_error("ZxJson::JValue::operator=[]<>: error type");
+			static_assert(false, "ZxJson::JValue::operator=<T>: error type");
 		} 
 
 		return *this;
@@ -115,8 +115,6 @@ namespace Zqf::Zut::ZxJson
 	template <class T> inline auto JValue::operator[](T&& rfData) -> JValue&
 	{
 		using T_decay = std::decay_t<decltype(rfData)>;
-
-		static_assert(std::is_bounded_array_v<std::remove_cvref_t<T>> || std::is_same_v<T_decay, std::string> || std::is_same_v<T_decay, std::string_view> || std::is_integral_v<T_decay>, "error type");
 
 		if constexpr (std::is_bounded_array_v<std::remove_cvref_t<T>> || std::is_same_v<T_decay, std::string>)
 		{
@@ -132,7 +130,7 @@ namespace Zqf::Zut::ZxJson
 		}
 		else
 		{
-			throw std::runtime_error("ZxJson::JValue::operator[]<>: error type");
+			static_assert(false, "ZxJson::JValue::operator[]<T>: error type");
 		}
 	}
 
@@ -171,7 +169,7 @@ namespace Zqf::Zut::ZxJson
 		}
 		else
 		{
-			throw std::runtime_error("ZxJson::JValue::Get<>: error get type!");
+			static_assert(false, "ZxJson::JValue::Get<T>(): error type!");
 		}
 	}
 
@@ -179,7 +177,7 @@ namespace Zqf::Zut::ZxJson
 	{
 		using T_decay = std::decay_t<T>;
 
-		static_assert((std::is_same_v<T_decay, JString_t> || std::is_same_v<T_decay, JArray_t> || std::is_same_v<T_decay, JObject_t>), "ZxJson::JValue::Sure<>: error type");
+		static_assert((std::is_same_v<T_decay, JString_t> || std::is_same_v<T_decay, JArray_t> || std::is_same_v<T_decay, JObject_t>), "ZxJson::JValue::Sure<T>(): error type");
 
 		if (std::holds_alternative<JNull_t>(m_Data))
 		{
@@ -187,7 +185,7 @@ namespace Zqf::Zut::ZxJson
 		}
 		else if (!std::holds_alternative<std::unique_ptr<T_decay>>(m_Data))
 		{
-			throw std::runtime_error("ZxJson::JValue::Sure<>: error!");
+			throw std::runtime_error("ZxJson::JValue::Sure<>(): error!");
 		}
 
 		return *std::get<std::unique_ptr<T_decay>>(m_Data);
@@ -195,8 +193,6 @@ namespace Zqf::Zut::ZxJson
 
 	template<class T> inline auto JValue::Check() -> bool
 	{
-		static_assert((std::is_same_v<T, JNull_t> || std::is_same_v<T, JBool_t> || std::is_same_v<T, JInt_t> || std::is_same_v<T, JDouble_t> || std::is_same_v<T, JString_t> || std::is_same_v<T, JArray_t> || std::is_same_v<T, JObject_t>), "ZxJson::JValue::Check<>: error type");
-
 		if constexpr (std::is_same_v<T, JNull_t> || std::is_same_v<T, JBool_t> || std::is_same_v<T, JInt_t> || std::is_same_v<T, JDouble_t>)
 		{
 			return std::holds_alternative<T>(m_Data);
@@ -207,7 +203,7 @@ namespace Zqf::Zut::ZxJson
 		}
 		else
 		{
-			throw std::runtime_error("ZxJson::JValue::Check: error!");
+			static_assert(false, "ZxJson::JValue::Check<T>(): error type!");
 		}
 	}
 
