@@ -56,8 +56,71 @@ static auto BenchJsonDumper() -> void
 static auto TestJsonParser() -> void
 {
 	auto x = Zut::ZxJson::Load("1.json");
-
 	Zut::ZxJson::JDoc jdoc("1.json");
+}
+
+static auto TestJsonValue() -> void
+{
+	Zut::ZxJson::JValue jv;
+	jv = 1; 
+	assert(jv.Get<size_t>() == 1);
+	jv = 1.2; 
+	assert(jv.Get<double>() == 1.2);
+	jv = "123"; 
+	assert(jv.Get<std::string_view>() == "123");
+	jv = std::string("5666"); 
+	assert(jv.Get<std::string>() == "5666"); 
+	assert(jv.Get<std::string&>() == "5666");
+
+	Zut::ZxJson::JValue jv1 = std::move(jv);
+	assert(jv.Check<Zut::ZxJson::JNull_t>());
+	assert(jv1.Get<std::string>() == "5666");
+	assert(jv1.Get<std::string&>() == "5666");
+
+
+	Zut::ZxJson::JArray_t jarr;
+	jarr.emplace_back(1);
+	jarr.emplace_back("12313");
+	jarr.emplace_back(13.41);
+	jarr.emplace_back(false);
+
+	assert(jarr.size() == 4);
+	assert(jarr[0].Get<size_t>() == 1);
+	assert(jarr[1].Get<std::string_view>() == "12313");
+	assert(jarr[2].Get<double>() == 13.41);
+	assert(jarr[3].Get<bool>() == false);
+
+	Zut::ZxJson::JObject_t jobj;
+	jobj["532532"] = 1;
+	jobj["666"] = 3.11;
+	jobj["777"] = "121431";
+	jobj["ftftfr"] = false;
+	
+	assert(jobj["532532"].Get<size_t>() == 1);
+	assert(jobj["666"].Get<double>() == 3.11);
+	assert(jobj["777"].Get<std::string_view>() == "121431");
+	assert(jobj["ftftfr"].Get<bool>() == false);
+
+	Zut::ZxJson::JArray_t jarr1 = std::move(jarr);
+	assert(jarr.empty());
+
+	jv = std::move(jarr1);
+	assert(jarr1.empty());
+
+	Zut::ZxJson::JObject_t jobj1 = std::move(jobj);
+	jobj1["arrayx"] = std::move(jv);
+	assert(jv.Check<Zut::ZxJson::JNull_t>());
+
+	assert(jobj1["arrayx"][0].Get<size_t>() == 1);
+
+	auto& jarr2 = jobj1["arrayx"].Get<Zut::ZxJson::JArray_t&>();
+	assert(jarr2.size() == 4);
+
+	jv = std::move(jobj1);
+	assert(jv["532532"].Get<size_t>() == 1);
+
+	int a = 0;
+
 }
 
 static auto TestJsonParseRegularEscape() -> bool
@@ -160,8 +223,9 @@ auto main() -> int
 	Zut::ZxNative::Sys::InitConsoleEncoding();
 	try
 	{
-		TestZxMemIO();
-		TestJsonParser();
+		TestJsonValue();
+		//TestZxMemIO();
+		//TestJsonParser();
 		//BenchJsonParser();
 		// TestZxMem();
 	}
