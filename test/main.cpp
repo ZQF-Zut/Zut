@@ -22,7 +22,7 @@ static auto BenchJsonParser() -> void
 		{
 			record.Beg();
 			Zut::ZxJson::JValue jv;
-			Zut::ZxJson::JParser{ { jmem.Ptr<char*>(), jmem.SizeBytes<size_t>() } }.Parse(jv);
+			Zut::ZxJson::JParser{ jmem.Span<char>() }.Parse(jv);
 			record.End();
 		}
 
@@ -51,6 +51,13 @@ static auto BenchJsonDumper() -> void
 	}
 
 	record.Log();
+}
+
+static auto TestJsonParser() -> void
+{
+	auto x = Zut::ZxJson::Load("1.json");
+
+	Zut::ZxJson::JDoc jdoc("1.json");
 }
 
 static auto TestJsonParseRegularEscape() -> bool
@@ -102,15 +109,14 @@ static auto TestZxMemIO() -> void
 		mem.Write(std::span{ ee });
 		int a = 0;
 
-		mem.SetPos<Zut::MoveWay::Cur>(-4);
+		mem.PosSet<Zut::MoveWay::Cur>(-4);
 
 		uint16_t x0 = mem.Get<uint16_t>();
 		uint16_t x1 = mem.Get<uint16_t>();
 	}
 
 
-	Zut::ZxMem mem(10);
-	mem.CurPtr<uint8_t*>();
+	Zut::ZxMem mem(100);
 
 	uint32_t tmp_val0 = 222;
 	double_t tmp_val1 = 111.11;
@@ -126,7 +132,7 @@ static auto TestZxMemIO() -> void
 	uint16_t tmp_val4 = 0xFF;
 	mem.Put(tmp_val2).Put(tmp_val3).Put(tmp_val4);
 
-	mem.SetPos<Zut::MoveWay::Beg>();
+	mem.PosSet<Zut::MoveWay::Beg>();
 
 	assert(tmp_val0 == mem.Get<uint32_t>());
 	assert(tmp_val1 == mem.Get<double_t>());
@@ -155,7 +161,8 @@ auto main() -> int
 	try
 	{
 		TestZxMemIO();
-		// JsonBench();
+		TestJsonParser();
+		//BenchJsonParser();
 		// TestZxMem();
 	}
 	catch (const std::exception& err)

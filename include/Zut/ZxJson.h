@@ -30,8 +30,8 @@ namespace Zqf::Zut::ZxJson
 	public:
 		JValue();
 		template <class T> JValue(T&& rfData);
-		template <class T> auto operator=(T&& rfData) -> JValue&;
-		template <class T> auto operator[](T&& rfData) -> JValue&;
+		template <class T> auto operator=(T&& rfData)->JValue&;
+		template <class T> auto operator[](T&& rfData)->JValue&;
 
 	public:
 		template <class T> auto Get() -> T;
@@ -76,7 +76,7 @@ namespace Zqf::Zut::ZxJson
 				},
 				rfData.m_Data);
 		}
-		else if constexpr (std::is_same_v<T, JValue&> || std::is_same_v<T, const JValue &>)
+		else if constexpr (std::is_same_v<T, JValue&> || std::is_same_v<T, const JValue&>)
 		{
 			m_Data = rfData.m_Data;
 		}
@@ -107,7 +107,7 @@ namespace Zqf::Zut::ZxJson
 		else
 		{
 			static_assert(false, "ZxJson::JValue::operator=<T>: error type");
-		} 
+		}
 
 		return *this;
 	}
@@ -258,12 +258,11 @@ namespace Zqf::Zut::ZxJson
 	static auto Load(const std::string_view msPath) -> JValue
 	{
 		JValue jv;
-		ZxMem m_JMem(msPath);
-		JParser{ { m_JMem.Ptr<char*>(), m_JMem.SizeBytes<size_t>() } }.Parse(jv);
+		JParser{ ZxMem{ msPath }.Span<char>() }.Parse(jv);
 		return jv;
 	}
 
-	static auto Save(const JValue& rfJValue,  const std::string_view msPath, bool isFormat, bool isForceSave) -> void
+	static auto Save(const JValue& rfJValue, const std::string_view msPath, bool isFormat, bool isForceSave) -> void
 	{
 		std::string text;
 		rfJValue.Dump(text, isFormat, 0);
@@ -276,7 +275,7 @@ namespace Zqf::Zut::ZxJson
 		JValue m_JValue;
 
 	public:
-		JDoc() 
+		JDoc()
 		{
 
 		};
@@ -306,9 +305,8 @@ namespace Zqf::Zut::ZxJson
 		}
 
 		auto Load(const std::string_view msPath) -> bool
-		{
-			ZxMem m_JMem(msPath);
-			return JParser{ { m_JMem.Ptr<char*>(), m_JMem.SizeBytes<size_t>() } }.Parse(m_JValue);
+		{			
+			return JParser{ ZxMem{ msPath }.Span<char>() }.Parse(m_JValue);
 		}
 
 		auto Save(const std::string_view msPath, bool isFormat) const -> void

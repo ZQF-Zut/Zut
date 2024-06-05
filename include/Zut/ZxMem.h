@@ -12,90 +12,11 @@ namespace Zqf::Zut
 	class ZxMem
 	{
 	private:
-		size_t m_nPosBytes{};
+		size_t m_nPos{};
 		size_t m_nSizeBytes{};
-		size_t m_nCapacityBytes{};
 		std::unique_ptr<uint8_t[]> m_upMemData;
 
-	public:
-		ZxMem() {}
-		~ZxMem() {}
-
-		ZxMem(size_t nSize)
-		{
-			this->ReserveBytes(nSize, false);
-		}
-
-		ZxMem(const std::string_view msPath, size_t nLoadSize = AUTO_MEM_AUTO_SIZE)
-		{
-			this->Load(msPath, nLoadSize);
-		}
-
-		ZxMem(const ZxMem& rfOBJ)
-		{
-			this->operator=(rfOBJ);
-		}
-
-		ZxMem(ZxMem&& rfOBJ) noexcept
-		{
-			this->operator=(std::move(rfOBJ));
-		}
-
-		auto operator=(const ZxMem& rfOBJ) -> ZxMem&
-		{
-			assert(this != &rfOBJ);
-
-			m_nPosBytes = rfOBJ.m_nPosBytes;
-			m_nSizeBytes = rfOBJ.m_nSizeBytes;
-			m_nCapacityBytes = m_nSizeBytes;
-			if (rfOBJ.m_upMemData != nullptr)
-			{
-				m_upMemData = std::make_unique_for_overwrite<uint8_t[]>(rfOBJ.m_nSizeBytes);
-				::memcpy(m_upMemData.get(), rfOBJ.m_upMemData.get(), m_nSizeBytes);
-			}
-
-			return *this;
-		}
-
-		auto operator=(ZxMem&& rfOBJ) noexcept -> ZxMem&
-		{
-			assert(this != &rfOBJ);
-
-			m_nPosBytes = rfOBJ.m_nPosBytes;
-			m_nSizeBytes = rfOBJ.m_nSizeBytes;
-			m_nCapacityBytes = rfOBJ.m_nSizeBytes;
-			m_upMemData = std::move(rfOBJ.m_upMemData);
-
-			rfOBJ.m_nPosBytes = 0;
-			rfOBJ.m_nSizeBytes = 0;
-			rfOBJ.m_nCapacityBytes = 0;
-
-			return *this;
-		}
-
-		auto operator+(const ZxMem& rfOBJ) -> ZxMem&
-		{
-			this->Write(std::span{ rfOBJ });
-			return *this;
-		}
-
-		auto operator[](const size_t nIndex) noexcept -> uint8_t
-		{
-			assert(nIndex < m_nSizeBytes);
-			return this->Ptr<uint8_t*>()[nIndex];
-		}
-
-		auto begin() const noexcept -> uint8_t*
-		{
-			return this->Ptr<uint8_t*>();
-		}
-
-		auto end() const noexcept -> uint8_t*
-		{
-			return this->Ptr<uint8_t*>() + this->SizeBytes<size_t>();
-		}
-
-	public:
+	private:
 		template <class T = uint8_t*>
 		auto Ptr() const noexcept -> T
 		{
@@ -110,17 +31,122 @@ namespace Zqf::Zut
 		}
 
 		template<class T = uint8_t*>
-		auto CurPtr() const noexcept -> T
+		auto PtrCur() const noexcept -> T
 		{
-			assert(m_nPosBytes <= m_nSizeBytes);
+			assert(m_nPos <= m_nSizeBytes);
 			if constexpr (std::is_pointer_v<T>)
 			{
-				return (this->Ptr<uint8_t*>() + m_nPosBytes);
+				return (this->Ptr<uint8_t*>() + m_nPos);
 			}
 			else
 			{
 				static_assert(false, "ZxMem::CurPtr<T>(): not pointer type!");
 			}
+		}
+
+	public:
+		ZxMem()
+		{
+
+		}
+
+		~ZxMem()
+		{
+
+		}
+
+		ZxMem(size_t nSize)
+		{
+			this->Resize(nSize, true);
+		}
+
+		ZxMem(const ZxMem& rfOBJ)
+		{
+			this->operator=(rfOBJ);
+		}
+
+		ZxMem(ZxMem&& rfOBJ) noexcept
+		{
+			this->operator=(std::move(rfOBJ));
+		}
+
+		ZxMem(const std::string_view msPath, size_t nLoadSize = AUTO_MEM_AUTO_SIZE)
+		{
+			this->Load(msPath, nLoadSize);
+		}
+
+		auto operator=(const ZxMem& rfOBJ) -> ZxMem&
+		{
+			assert(this != &rfOBJ);
+
+			m_nPos = rfOBJ.m_nPos;
+			m_nSizeBytes = rfOBJ.m_nSizeBytes;
+			if (rfOBJ.m_upMemData != nullptr)
+			{
+				m_upMemData = std::make_unique_for_overwrite<uint8_t[]>(rfOBJ.m_nSizeBytes);
+				::memcpy(m_upMemData.get(), rfOBJ.m_upMemData.get(), m_nSizeBytes);
+			}
+
+			return *this;
+		}
+
+		auto operator=(ZxMem&& rfOBJ) noexcept -> ZxMem&
+		{
+			assert(this != &rfOBJ);
+
+			m_nPos = rfOBJ.m_nPos;
+			m_nSizeBytes = rfOBJ.m_nSizeBytes;
+			m_upMemData = std::move(rfOBJ.m_upMemData);
+
+			rfOBJ.m_nPos = 0;
+			rfOBJ.m_nSizeBytes = 0;
+
+			return *this;
+		}
+
+	public:
+		template <class T = uint8_t>
+		auto Span() const noexcept -> std::span<T>
+		{
+			return std::span{ this->Ptr<T*>(), this->SizeBytes() / sizeof(T) };
+		}
+
+		template <class T = size_t>
+		auto Pos() const -> T
+		{
+			if constexpr (std::is_integral_v<T>)
+			{
+				return static_cast<T>(m_nPos);
+			}
+			else
+			{
+				static_assert(false, "ZxMem::Pos<T>(): not integral type!");
+			}
+		}
+
+		template <Zut::MoveWay eWay = Zut::MoveWay::Beg>
+		auto PosSet(size_t nBytes = 0) -> ZxMem&
+		{
+			if constexpr (eWay == Zut::MoveWay::Beg)
+			{
+				m_nPos = nBytes;
+			}
+			else if constexpr (eWay == Zut::MoveWay::Cur)
+			{
+				m_nPos += nBytes;
+			}
+			else if constexpr (eWay == Zut::MoveWay::End)
+			{
+				m_nPos = m_nSizeBytes;
+				m_nPos += nBytes;
+			}
+
+			if (m_nPos > m_nSizeBytes)
+			{
+				throw std::runtime_error("ZxMem::SetPos: out of size!");
+			}
+
+			return *this;
 		}
 
 		template <class T = size_t>
@@ -136,70 +162,40 @@ namespace Zqf::Zut
 			}
 		}
 
-		template <Zut::MoveWay eWay = Zut::MoveWay::Beg>
-		auto SetPos(size_t nBytes = 0) noexcept -> size_t
-		{
-			if constexpr (eWay == Zut::MoveWay::Beg)
-			{
-				m_nPosBytes = nBytes;
-			}
-			else if constexpr (eWay == Zut::MoveWay::Cur)
-			{
-				m_nPosBytes += nBytes;
-			}
-			else if constexpr (eWay == Zut::MoveWay::End)
-			{
-				m_nPosBytes = m_nSizeBytes;
-				m_nPosBytes += nBytes;
-			}
-
-			assert(m_nPosBytes <= m_nSizeBytes);
-			return m_nPosBytes;
-		}
-
-		auto ReserveBytes(size_t nNewSizeBytes, bool isDiscard = false) -> ZxMem&
+		auto Resize(size_t nNewSizeBytes, bool isDiscard = false) -> ZxMem&
 		{
 			if (m_upMemData == nullptr)
 			{
-				m_nCapacityBytes = nNewSizeBytes;
 				m_upMemData = std::make_unique_for_overwrite<uint8_t[]>(nNewSizeBytes);
 			}
-			else if (m_nCapacityBytes < nNewSizeBytes)
+			else if (m_nSizeBytes < nNewSizeBytes)
 			{
-				m_nCapacityBytes = nNewSizeBytes * 2;
-				std::unique_ptr<uint8_t[]> tmp = std::make_unique_for_overwrite<uint8_t[]>(m_nCapacityBytes);
-				if ((isDiscard == false) && (m_nSizeBytes != 0)) 
-				{ 
+				auto tmp = std::make_unique_for_overwrite<uint8_t[]>(nNewSizeBytes);
+				if (isDiscard == false)
+				{
 					::memcpy(tmp.get(), m_upMemData.get(), m_nSizeBytes);
 				}
 				m_upMemData = std::move(tmp);
 			}
 
-			return *this;
-		}
-
-		auto ResizeBytes(size_t nNewSizeBytes, bool isDiscard = false) -> ZxMem&
-		{
-			this->ReserveBytes(nNewSizeBytes, isDiscard);
 			m_nSizeBytes = nNewSizeBytes;
 			return *this;
 		}
 
 		template <class T, size_t S>
-		auto Read(const std::span<T, S> spData) noexcept -> void
+		auto Read(const std::span<T, S> spData) -> void
 		{
 			if (spData.empty()) { return; }
-			std::memcpy(spData.data(), this->CurPtr<uint8_t*>(), spData.size_bytes());
-			this->SetPos<Zut::MoveWay::Cur>(spData.size_bytes());
+			std::memcpy(spData.data(), this->PtrCur<uint8_t*>(), spData.size_bytes());
+			this->PosSet<Zut::MoveWay::Cur>(spData.size_bytes());
 		}
 
 		template <class T, size_t S>
-		auto Write(const std::span<T, S> spData) noexcept -> void
+		auto Write(const std::span<T, S> spData) -> void
 		{
 			if (spData.empty()) { return; }
-			this->ResizeBytes(this->SizeBytes() + spData.size_bytes(), false);
-			std::memcpy(this->CurPtr<uint8_t*>(), spData.data(), spData.size_bytes());
-			this->SetPos<Zut::MoveWay::Cur>(spData.size_bytes());
+			std::memcpy(this->PtrCur<uint8_t*>(), spData.data(), spData.size_bytes());
+			this->PosSet<Zut::MoveWay::Cur>(spData.size_bytes());
 		}
 
 		template<class T>
@@ -253,7 +249,7 @@ namespace Zqf::Zut
 	public:
 		auto Save(const std::string_view msPath, bool isForceSave) const -> const ZxMem&
 		{
-			ZxFile::SaveDataViaPath(msPath, std::span{ *this }, isForceSave);
+			ZxFile::SaveDataViaPath(msPath, this->Span<uint8_t>(), isForceSave);
 			return *this;
 		}
 
@@ -286,7 +282,7 @@ namespace Zqf::Zut
 				throw std::runtime_error(std::format("ZxMem::Load: get file size error!, msPath: {}", msPath));
 			}
 
-			ifs.Read(std::span{ this->ResizeBytes(read_size_bytes, true).Ptr<uint8_t*>(), this->SizeBytes() });
+			ifs.Read(std::span{ this->Resize(read_size_bytes, true).Span<uint8_t>() });
 			return *this;
 		}
 	};
