@@ -153,6 +153,11 @@ namespace Zqf::Zut
 			return this->PosSet<Zut::MoveWay::Cur>(nBytes);
 		}
 
+		auto PosRewind() -> ZxMem&
+		{
+			return this->PosSet<Zut::MoveWay::Beg>(0);
+		}
+
 		template <class T = size_t>
 		auto SizeBytes() const noexcept -> T
 		{
@@ -277,17 +282,17 @@ namespace Zqf::Zut
 					}
 					else
 					{
-						throw std::runtime_error(std::format("ZxMem::Load: read size larger than file size!, msPath: {}", msPath));
+						throw std::runtime_error(std::format("ZxMem::Load(): read size larger than file size!, msPath: {}", msPath));
 					}
 				}
 			}
 			else
 			{
-				throw std::runtime_error(std::format("ZxMem::Load: get file size error!, msPath: {}", msPath));
+				throw std::runtime_error(std::format("ZxMem::Load(): get file size error!, msPath: {}", msPath));
 			}
 
 			ifs.Read(std::span{ this->Resize(read_size_bytes, true).Span<uint8_t>() });
-			return *this;
+			return this->PosRewind();
 		}
 	};
 
