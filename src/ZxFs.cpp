@@ -14,9 +14,14 @@ namespace Zqf::Zut::ZxFs
 		m_aSearchDir[msWalkDir.size() + 1] = '\0';
 		m_msSearchDir = { m_aSearchDir, msWalkDir.size() + 1 };
 
-		if (auto hfind_opt = ZxNative::Fs::WalkCreate(m_msSearchDir)) { m_hFind = *hfind_opt; }
-
-		throw std::runtime_error(std::format("ZxPath::Walk: find dir {} first file error! ", m_msSearchDir));
+		if (auto hfind_opt = ZxNative::Fs::WalkCreate(m_msSearchDir)) 
+		{ 
+			m_hFind = *hfind_opt;
+		}
+		else
+		{
+			throw std::runtime_error(std::format("ZxPath::Walk: find dir {} first file error! ", m_msSearchDir));
+		}
 	}
 
 	Walk::~Walk()

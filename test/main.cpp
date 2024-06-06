@@ -223,6 +223,12 @@ auto main() -> int
 	Zut::ZxNative::Sys::InitConsoleEncoding();
 	try
 	{
+		for (Zut::ZxFs::Walk walk("test_file_/"); walk.NextFile();)
+		{
+			std::println("{}", walk.GetPath());
+			std::println("{}", walk.GetName());
+		}
+
 		TestJsonValue();
 		//TestZxMemIO();
 		//TestJsonParser();
