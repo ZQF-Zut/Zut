@@ -223,8 +223,9 @@ auto main() -> int
 	Zut::ZxNative::Sys::InitConsoleEncoding();
 	try
 	{
-		for (Zut::ZxFs::Walk walk("test_file_/"); walk.NextFile();)
+		for (Zut::ZxFs::Walk walk("test_file_/"); walk.NextDir();)
 		{
+			auto x = walk.GetPath();
 			std::println("{}", walk.GetPath());
 			std::println("{}", walk.GetName());
 		}

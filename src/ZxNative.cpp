@@ -185,9 +185,9 @@ namespace Zqf::Zut::ZxNative::Fs
 				{
 					continue;
 				}
-				else if (find_data.cFileName[1] != L'.')
+				else if (find_data.cFileName[1] == L'.')
 				{
-					if (find_data.cFileName[2] != L'\0')
+					if (find_data.cFileName[2] == L'\0')
 					{
 						continue;
 					}
