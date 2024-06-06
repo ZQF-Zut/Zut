@@ -292,11 +292,11 @@ namespace Zqf::Zut::ZxJson
 	{
 		char* end = nullptr;
 		const char* beg = this->CurPtr();
-		const double num_org = ::strtod(beg, &end);
+		const double_t num_org = ::strtod(beg, &end);
 		this->AddReadBytes(end - beg);
 
-		const int num_int = (int)(num_org);
-		(num_org == (double)(num_int)) ? (rfJValue = num_int) : (rfJValue = num_org);
+		const uint64_t num_int = (uint64_t)(num_org);
+		(num_org == (double_t)(num_int)) ? (rfJValue = num_int) : (rfJValue = num_org);
 	}
 
 	auto JParser::ParseString(JValue& rfJValue) -> void
