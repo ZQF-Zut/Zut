@@ -1,8 +1,5 @@
 # Zut
-
 Cross-Platform Modern C++ Utility Library
-
-
 
 ## Features
 - Modern C++ based
@@ -11,50 +8,20 @@ Cross-Platform Modern C++ Utility Library
 - Isolation platform related
 - Independence between modules
 
-
-
 ## Modules
-
-- [ZxFile](https://github.com/ZQF-Zut/ZxFile)
-
-  file stream via native api
-
-- [ZxCvt](https://github.com/ZQF-Zut/ZxCvt)
-
-  text converter
-
-- [ZxINI](https://github.com/ZQF-Zut/ZxINI)
-
-  ini file parser
-
-- [ZxJson](https://github.com/ZQF-Zut/ZxJson)
-
-  json library
-
-- [ZxArg](https://github.com/ZQF-Zut/ZxArg)
-
-  command line parser without argc and argv
-
-- [ZxMem](https://github.com/ZQF-Zut/ZxMem)
-
-  memory stream
-  
-- [ZxHook](https://github.com/ZQF-Zut/ZxHook)
-
-  x86 Hooking wrapper
-
-- [Zx32](https://github.com/ZQF-Zut/Zx32)
-
-  win32 api utf8  wrapper
-
-  
+- [ZxFile](https://github.com/ZQF-Zut/ZxFile) : `file stream via native api`
+- [ZxCvt](https://github.com/ZQF-Zut/ZxCvt) : `text converter`
+- [ZxINI](https://github.com/ZQF-Zut/ZxINI) : `ini file parser`
+- [ZxJson](https://github.com/ZQF-Zut/ZxJson) : `json library`
+- [ZxArg](https://github.com/ZQF-Zut/ZxArg) : `command line parser without argc and argv`
+- [ZxMem](https://github.com/ZQF-Zut/ZxMem) : `memory stream`
+- [ZxHook](https://github.com/ZQF-Zut/ZxHook) : `x86 Hooking wrapper`
+- [Zx32](https://github.com/ZQF-Zut/Zx32) : `win32 api utf8  wrapper`
 
 ## Usage
 
 - CMake
-
   please make sure that the cmake minimum required is greater than 3.20.
-
   ```cmake
   ...
   include(FetchContent)
@@ -68,5 +35,3 @@ Cross-Platform Modern C++ Utility Library
   ...
   target_link_libraries(hello_zut PRIVATE Zut::ZxFile)
   ```
-
-  
