@@ -16,7 +16,7 @@ Cross-Platform Modern C++ Utility Library
 - [ZxArg](https://github.com/ZQF-Zut/ZxArg) : `command line parser without argc and argv`
 - [ZxMem](https://github.com/ZQF-Zut/ZxMem) : `memory stream`
 - [ZxHook](https://github.com/ZQF-Zut/ZxHook) : `x86 hooking wrapper`
-- [Zx32](https://github.com/ZQF-Zut/Zx32) : `win32 api utf8  wrapper`
+- [Zx32](https://github.com/ZQF-Zut/Zx32) : `win32 api utf8 wrapper`
 
 ## Usage
 
