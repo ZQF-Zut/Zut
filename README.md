@@ -11,9 +11,9 @@ Cross-Platform Modern C++ Utility Library
 ## Modules
 - [ZxJson](https://github.com/ZQF-Zut/ZxJson) : `json library`
 - [ZxHook](https://github.com/ZQF-Zut/ZxHook) : `x86 hooking wrapper`
-- [ZxArg](https://github.com/ZQF-Zut/ZxArg) : `command line parser without argc and argv`
-- [ZxFile](https://github.com/ZQF-Zut/ZxFile) : `file stream via native api`
-- [ZxFS](https://github.com/ZQF-Zut/ZxFS) : `file system via native API`
+- [ZxArg](https://github.com/ZQF-Zut/ZxArg) : `command line parser`
+- [ZxFile](https://github.com/ZQF-Zut/ZxFile) : `file stream`
+- [ZxFS](https://github.com/ZQF-Zut/ZxFS) : `file system`
 - [ZxCvt](https://github.com/ZQF-Zut/ZxCvt) : `text converter`
 - [ZxINI](https://github.com/ZQF-Zut/ZxINI) : `ini parser`
 - [ZxMem](https://github.com/ZQF-Zut/ZxMem) : `memory stream`
